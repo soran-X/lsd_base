@@ -1,0 +1,84 @@
+<% if site_setting.errors.any? %>
+  <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <h3 class="text-sm font-semibold text-red-800 mb-2"><%= pluralize(site_setting.errors.count, "error") %> prevented saving:</h3>
+    <ul class="list-disc list-inside space-y-1">
+      <% site_setting.errors.each do |error| %>
+        <li class="text-sm text-red-700"><%= error.full_message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<div class="space-y-5">
+  <div>
+    <%= f.label :key, class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :key, class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent", placeholder: "e.g. allow_public_signup" %>
+    <p class="text-xs text-gray-400 mt-1">Use snake_case keys. Keys are unique.</p>
+  </div>
+
+  <div>
+    <% if site_setting.key == "app_logo" %>
+      <%= f.label :value, "Logo", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <div class="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <% if site_setting.logo.attached? %>
+          <% blob = site_setting.logo.blob %>
+          <%= image_tag rails_service_blob_proxy_path(signed_id: blob.signed_id, filename: blob.filename.to_s), alt: "Current logo", class: "h-8 object-contain" %>
+          <span class="text-xs text-gray-500">Current logo</span>
+        <% else %>
+          <%= image_tag "/logo-white-horizontal.svg", alt: "Default logo", class: "h-8 object-contain" %>
+          <span class="text-xs text-gray-500">Default (no custom upload yet)</span>
+        <% end %>
+      </div>
+      <label class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 shadow-sm transition-colors">
+        <svg class="h-4 w-4 text-gray-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+        <span class="js-file-label">Choose file…</span>
+        <input type="file" name="site_setting[logo]" accept=".svg,image/svg+xml" class="sr-only" data-file-input>
+      </label>
+      <p class="text-xs text-gray-400 mt-1">SVG only.</p>
+
+    <% elsif site_setting.key == "favicon_icon" %>
+      <%= f.label :value, "Favicon / Browser Icon", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <% if site_setting.logo.attached? %>
+        <% fav_blob = site_setting.logo.blob %>
+        <% fav_src = rails_service_blob_proxy_path(signed_id: fav_blob.signed_id, filename: fav_blob.filename.to_s) %>
+      <% else %>
+        <% fav_src = "/icon.svg" %>
+      <% end %>
+      <div class="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <div class="h-9 w-9 rounded bg-gray-800 flex items-center justify-center flex-shrink-0">
+          <%= image_tag fav_src, width: 20, height: 20, style: "width:20px;height:20px;object-fit:contain;" %>
+        </div>
+        <div class="h-9 w-9 rounded bg-white border border-gray-200 flex items-center justify-center flex-shrink-0">
+          <%= image_tag fav_src, width: 20, height: 20, style: "width:20px;height:20px;object-fit:contain;" %>
+        </div>
+        <span class="text-xs text-gray-500">
+          <%= site_setting.logo.attached? ? "Custom favicon" : "Default (icon.svg)" %>
+        </span>
+      </div>
+      <label class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 shadow-sm transition-colors">
+        <svg class="h-4 w-4 text-gray-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+        <span class="js-file-label">Choose file…</span>
+        <input type="file" name="site_setting[logo]" accept=".svg,image/svg+xml" class="sr-only" data-file-input>
+      </label>
+      <p class="text-xs text-gray-400 mt-1">SVG only. Use a dark version so it's visible on light browser tabs.</p>
+
+    <% else %>
+      <%= f.label :value, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.text_area :value, rows: 3, class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent", placeholder: "true / false / any string" %>
+    <% end %>
+  </div>
+
+  <div class="flex gap-3 pt-2">
+    <%= f.submit class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+    <%= link_to "Cancel", site_settings_path, class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+  </div>
+
+  <script>
+    document.querySelectorAll('[data-file-input]').forEach(function(input) {
+      input.addEventListener('change', function() {
+        var label = this.closest('label').querySelector('.js-file-label');
+        if (label) label.textContent = this.files[0] ? this.files[0].name : 'Choose file\u2026';
+      });
+    });
+  </script>
+</div>

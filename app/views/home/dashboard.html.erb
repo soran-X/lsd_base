@@ -1,0 +1,68 @@
+<% content_for :title, "Dashboard — ClinicDev" %>
+
+<div class="mb-8">
+  <h1 class="text-2xl font-bold text-gray-900">Welcome back, <%= Current.user.display_name %>!</h1>
+  <p class="mt-1 text-sm text-gray-500">Here's an overview of your ClinicDev workspace.</p>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <p class="text-sm font-medium text-gray-500">Books</p>
+      <span class="text-indigo-600 bg-indigo-50 p-2 rounded-lg">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      </span>
+    </div>
+    <p class="text-3xl font-bold text-gray-900"><%= Book.count %></p>
+    <%= link_to "View all", books_path, class: "mt-2 inline-block text-sm text-indigo-600 hover:text-indigo-800 font-medium" %>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <p class="text-sm font-medium text-gray-500">Authors</p>
+      <span class="text-emerald-600 bg-emerald-50 p-2 rounded-lg">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      </span>
+    </div>
+    <p class="text-3xl font-bold text-gray-900"><%= Author.count %></p>
+    <%= link_to "View all", authors_path, class: "mt-2 inline-block text-sm text-emerald-600 hover:text-emerald-800 font-medium" %>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <p class="text-sm font-medium text-gray-500">Scouts</p>
+      <span class="text-amber-600 bg-amber-50 p-2 rounded-lg">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+      </span>
+    </div>
+    <p class="text-3xl font-bold text-gray-900"><%= Scout.count %></p>
+    <%= link_to "View all", scouts_path, class: "mt-2 inline-block text-sm text-amber-600 hover:text-amber-800 font-medium" %>
+  </div>
+</div>
+
+<% if Current.user.hierarchy_level >= 50 %>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm font-medium text-gray-500">Total Users</p>
+        <span class="text-violet-600 bg-violet-50 p-2 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </span>
+      </div>
+      <p class="text-3xl font-bold text-gray-900"><%= User.count %></p>
+      <p class="text-sm text-gray-400 mt-1"><%= User.where(approved: false).count %> pending approval</p>
+      <%= link_to "Manage users", users_path, class: "mt-2 inline-block text-sm text-violet-600 hover:text-violet-800 font-medium" %>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm font-medium text-gray-500">Your Role</p>
+        <span class="text-gray-600 bg-gray-100 p-2 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </span>
+      </div>
+      <p class="text-xl font-bold text-gray-900"><%= Current.user.role&.name || "None assigned" %></p>
+      <p class="text-sm text-gray-400 mt-1">Level <%= Current.user.hierarchy_level %></p>
+    </div>
+  </div>
+<% end %>

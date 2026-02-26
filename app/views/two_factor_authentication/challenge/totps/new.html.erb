@@ -1,0 +1,46 @@
+<% content_for :title, "Two-Factor Authentication — #{app_name}" %>
+
+<div class="min-h-screen flex items-center justify-center" style="background-color: var(--color-secondary)">
+  <div class="max-w-md w-full px-6">
+    <div class="text-center mb-8">
+      <%= image_tag logo_url, alt: app_name, class: "max-h-16 max-w-full object-contain mx-auto mb-4",
+          onerror: "this.style.display='none';this.nextElementSibling.style.display='block'" %>
+      <h1 class="text-2xl font-bold mb-4" style="display:none;color:var(--color-on-secondary)"><%= app_name %></h1>
+      <h2 class="text-lg font-semibold" style="color:var(--color-on-secondary)">Two-Factor Authentication</h2>
+      <p class="mt-2 text-sm" style="color:var(--color-on-secondary-subtle)">Open your authenticator app and enter the 6-digit code.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-8">
+      <% if alert.present? %>
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
+          <%= alert %>
+        </div>
+      <% end %>
+
+      <%= form_with url: two_factor_authentication_challenge_totp_path, class: "space-y-5" do |f| %>
+        <div>
+          <%= f.label :code, "Authentication Code", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.text_field :code,
+              autofocus: true, required: true, autocomplete: :off,
+              inputmode: "numeric", pattern: "[0-9]*", maxlength: 6,
+              placeholder: "000000",
+              class: "block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-center tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+        </div>
+
+        <%= f.submit "Verify",
+            class: "w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+      <% end %>
+
+      <div class="mt-6 pt-6 border-t border-gray-100 text-center">
+        <p class="text-sm text-gray-500 mb-1">Don't have your phone?</p>
+        <%= link_to "Use a recovery code instead",
+            new_two_factor_authentication_challenge_recovery_codes_path,
+            class: "text-sm text-indigo-600 font-medium hover:text-indigo-800" %>
+      </div>
+    </div>
+
+    <p class="text-center mt-6 text-sm">
+      <a href="<%= sign_in_path %>" class="font-semibold hover:opacity-80" style="color:var(--color-on-secondary)">← Back to sign in</a>
+    </p>
+  </div>
+</div>

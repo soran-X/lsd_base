@@ -1,0 +1,32 @@
+<% content_for :title, "Conversations — #{app_name}" %>
+<% content_for :wrapper_class, "h-screen overflow-hidden" %>
+<% content_for :main_class, "flex-1 min-h-0 overflow-hidden flex flex-col p-0" %>
+
+<%= turbo_stream_from "conversations_list" %>
+
+<div class="flex flex-1 min-h-0 overflow-hidden">
+  <%# Left panel — conversation list %>
+  <div class="w-72 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col">
+    <div class="px-4 py-4 border-b border-gray-100">
+      <h1 class="text-base font-semibold text-gray-900">Conversations</h1>
+      <p class="text-xs text-gray-400 mt-0.5"><%= @conversations.count %> total</p>
+    </div>
+    <div id="conversations-list" class="flex-1 overflow-y-auto divide-y divide-gray-100">
+      <% if @conversations.empty? %>
+        <p class="text-sm text-gray-400 text-center py-12 px-4">No conversations yet.</p>
+      <% else %>
+        <%= render @conversations %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Right panel — conversation detail (Turbo Frame) %>
+  <turbo-frame id="conversation" class="flex-1 relative overflow-hidden bg-gray-50">
+    <div class="flex-1 flex items-center justify-center">
+      <div class="text-center">
+        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        <p class="text-sm text-gray-400">Select a conversation</p>
+      </div>
+    </div>
+  </turbo-frame>
+</div>

@@ -1,0 +1,25 @@
+<% content_for :title, "New Role — ClinicDev" %>
+
+<div class="mb-6">
+  <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+    <%= link_to "Roles", roles_path, class: "hover:text-gray-700" %>
+    <span>/</span>
+    <span class="text-gray-900">New</span>
+  </div>
+  <h1 class="text-2xl font-bold text-gray-900">New Role</h1>
+  <p class="mt-1 text-sm text-gray-500">You can assign permissions after creating the role.</p>
+</div>
+
+<div class="max-w-sm">
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <%= form_with model: @role do |f| %>
+      <%= render "form", role: @role, f: f %>
+      <div class="flex gap-3 pt-5 border-t border-gray-100 mt-5">
+        <%= f.submit "Create Role",
+              class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+        <%= link_to "Cancel", roles_path,
+              class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+      </div>
+    <% end %>
+  </div>
+</div>

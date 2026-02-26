@@ -1,0 +1,4 @@
+<p id="<%= receipt_id %>"
+   style="text-align:right;font-size:0.7rem;color:#9ca3af;padding:0 1.25rem 0.25rem;line-height:1;flex-shrink:0">
+  <% if seen %><%= seen_at ? "Seen #{seen_at.strftime("%-I:%M %p")}" : "Seen" %><% end %>
+</p>

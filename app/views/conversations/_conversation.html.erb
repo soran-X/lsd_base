@@ -1,0 +1,22 @@
+<% unread = conversation.unread_for_admin.count %>
+<div id="conversation-<%= conversation.id %>">
+  <%= link_to conversation_path(conversation), data: { turbo_frame: "conversation" },
+      class: "flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer block #{unread > 0 ? 'bg-indigo-50' : ''}" do %>
+    <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0" style="background-color:var(--color-tertiary)">
+      <%= conversation.user.initials %>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between gap-2">
+        <p class="text-sm font-medium text-gray-900 truncate"><%= conversation.user.display_name %></p>
+        <% if unread > 0 %>
+          <span style="background:#ef4444;color:#fff;font-size:0.65rem;font-weight:700;padding:1px 5px;border-radius:9999px;line-height:1.4;flex-shrink:0"><%= unread %></span>
+        <% end %>
+      </div>
+      <% last = conversation.messages.last %>
+      <p class="text-xs text-gray-400 truncate mt-0.5">
+        <%= last ? truncate(last.body, length: 40) : "No messages yet" %>
+      </p>
+      <p class="text-xs text-gray-300 mt-0.5"><%= last ? time_ago_in_words(last.created_at) + " ago" : "" %></p>
+    </div>
+  <% end %>
+</div>

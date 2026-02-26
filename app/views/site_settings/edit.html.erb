@@ -1,0 +1,19 @@
+<% content_for :title, "Edit Setting — ClinicDev" %>
+
+<div class="mb-6">
+  <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+    <%= link_to "Site Settings", site_settings_path, class: "hover:text-gray-700" %>
+    <span>/</span>
+    <span class="text-gray-900">Edit</span>
+  </div>
+  <h1 class="text-2xl font-bold text-gray-900">Edit Site Setting</h1>
+  <p class="mt-1 text-sm text-gray-500 font-mono"><%= @site_setting.key %></p>
+</div>
+
+<div class="max-w-lg">
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <%= form_with model: @site_setting, multipart: @site_setting.key.in?(%w[app_logo favicon_icon]) do |f| %>
+      <%= render "form", site_setting: @site_setting, f: f %>
+    <% end %>
+  </div>
+</div>

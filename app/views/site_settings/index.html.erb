@@ -1,0 +1,251 @@
+<% content_for :title, "Site Settings — #{app_name}" %>
+
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">Site Settings</h1>
+  <p class="mt-1 text-sm text-gray-500">New settings are added via migrations. Use the forms below to configure existing settings.</p>
+</div>
+
+<div class="space-y-6">
+
+  <%# ── Branding ────────────────────────────────────────────────────────── %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <h2 class="text-base font-semibold text-gray-900 mb-1">Branding</h2>
+    <p class="text-sm text-gray-500 mb-5">App name and logo shown in the sidebar and on the login page.</p>
+
+    <%= form_with url: update_branding_site_settings_path, method: :patch, multipart: true, class: "space-y-5" do |f| %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">App Name</label>
+          <input type="text" name="app_name"
+                 value="<%= SiteSetting["app_name"] || "ClinicDev" %>"
+                 placeholder="ClinicDev"
+                 class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+          <p class="text-xs text-gray-400 mt-1">Appears in the browser tab and page headings.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Logo</label>
+          <div class="flex items-center gap-3 mb-2">
+            <%= image_tag logo_url, alt: app_name, class: "h-8 object-contain rounded" %>
+            <span class="text-xs text-gray-400">
+              <%= SiteSetting.logo_attached? ? "Custom logo" : "Default logo" %>
+            </span>
+          </div>
+          <label class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 shadow-sm transition-colors">
+            <svg class="h-4 w-4 text-gray-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+            <span class="js-file-label">Choose file…</span>
+            <input type="file" name="logo" accept=".svg,image/svg+xml" class="sr-only" data-file-input>
+          </label>
+          <p class="text-xs text-gray-400 mt-1">SVG only. Upload to replace the default.</p>
+        </div>
+
+        <% fav = @site_settings.find { |s| s.key == "favicon_icon" } %>
+        <% if fav&.logo&.attached? %>
+          <% fav_blob = fav.logo.blob %>
+          <% fav_src = rails_service_blob_proxy_path(signed_id: fav_blob.signed_id, filename: fav_blob.filename.to_s) %>
+        <% else %>
+          <% fav_src = "/icon.svg" %>
+        <% end %>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Favicon / Browser Icon</label>
+          <div class="flex items-center gap-3 mb-2">
+            <div class="h-10 w-10 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0" title="Preview on dark background">
+              <%= image_tag fav_src, width: 24, height: 24, style: "width:24px;height:24px;object-fit:contain;" %>
+            </div>
+            <div class="h-10 w-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center flex-shrink-0" title="Preview on light background">
+              <%= image_tag fav_src, width: 24, height: 24, style: "width:24px;height:24px;object-fit:contain;" %>
+            </div>
+            <span class="text-xs text-gray-400">
+              <%= fav&.logo&.attached? ? "Custom favicon" : "Default favicon (icon.svg)" %>
+              <span class="block text-gray-300">Shown on dark &amp; light backgrounds</span>
+            </span>
+          </div>
+          <label class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 shadow-sm transition-colors">
+            <svg class="h-4 w-4 text-gray-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+            <span class="js-file-label">Choose file…</span>
+            <input type="file" name="favicon" accept=".svg,image/svg+xml" class="sr-only" data-file-input>
+          </label>
+          <p class="text-xs text-gray-400 mt-1">SVG only. Use a dark version so it's visible on light browser tabs.</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <%= f.submit "Save Branding",
+            class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# ── Theme Colors ─────────────────────────────────────────────────────── %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <h2 class="text-base font-semibold text-gray-900 mb-1">Theme Colors</h2>
+    <p class="text-sm text-gray-500 mb-5">Customize the main colors used across the interface.</p>
+
+    <%= form_with url: update_branding_site_settings_path, method: :patch, class: "space-y-5" do |f| %>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Primary</label>
+          <div class="flex items-center gap-3">
+            <input type="color" name="primary_color"
+                   value="<%= SiteSetting["primary_color"] || "#4f46e5" %>"
+                   class="h-10 w-14 rounded-lg border border-gray-300 cursor-pointer p-0.5">
+            <input type="text" id="primary_color_text"
+                   value="<%= SiteSetting["primary_color"] || "#4f46e5" %>"
+                   pattern="#[0-9a-fA-F]{6}"
+                   class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                   oninput="this.previousElementSibling.value=this.value"
+                   readonly>
+          </div>
+          <p class="text-xs text-gray-400 mt-1.5">Buttons, active nav items, links.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Secondary</label>
+          <div class="flex items-center gap-3">
+            <input type="color" name="secondary_color"
+                   value="<%= SiteSetting["secondary_color"] || "#111827" %>"
+                   class="h-10 w-14 rounded-lg border border-gray-300 cursor-pointer p-0.5">
+            <input type="text" id="secondary_color_text"
+                   value="<%= SiteSetting["secondary_color"] || "#111827" %>"
+                   pattern="#[0-9a-fA-F]{6}"
+                   class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                   oninput="this.previousElementSibling.value=this.value"
+                   readonly>
+          </div>
+          <p class="text-xs text-gray-400 mt-1.5">Sidebar background.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tertiary</label>
+          <div class="flex items-center gap-3">
+            <input type="color" name="tertiary_color"
+                   value="<%= SiteSetting["tertiary_color"] || "#6366f1" %>"
+                   class="h-10 w-14 rounded-lg border border-gray-300 cursor-pointer p-0.5">
+            <input type="text" id="tertiary_color_text"
+                   value="<%= SiteSetting["tertiary_color"] || "#6366f1" %>"
+                   pattern="#[0-9a-fA-F]{6}"
+                   class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                   oninput="this.previousElementSibling.value=this.value"
+                   readonly>
+          </div>
+          <p class="text-xs text-gray-400 mt-1.5">Avatar background, accents.</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <%= f.submit "Save Theme",
+            class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# ── Company Details ───────────────────────────────────────────────────── %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <h2 class="text-base font-semibold text-gray-900 mb-1">Company Details</h2>
+    <p class="text-sm text-gray-500 mb-5">Information about the organisation using this system. Accessible anywhere via <code class="text-xs bg-gray-100 px-1 py-0.5 rounded">SiteSetting.company</code> or <code class="text-xs bg-gray-100 px-1 py-0.5 rounded">SiteSetting.company_detail(:name)</code>.</p>
+
+    <%= form_with url: update_company_site_settings_path, method: :patch, class: "space-y-4" do |f| %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+          <input type="text" name="name" value="<%= SiteSetting.company_detail(:name) %>"
+                 placeholder="Acme Corp"
+                 class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tagline <span class="text-gray-400 font-normal">(optional)</span></label>
+          <input type="text" name="tagline" value="<%= SiteSetting.company_detail(:tagline) %>"
+                 placeholder="Your trusted partner"
+                 class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input type="email" name="email" value="<%= SiteSetting.company_detail(:email) %>"
+                 placeholder="hello@company.com"
+                 class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+          <input type="tel" name="phone" value="<%= SiteSetting.company_detail(:phone) %>"
+                 placeholder="+1 555 000 0000"
+                 class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Website <span class="text-gray-400 font-normal">(optional)</span></label>
+          <input type="url" name="website" value="<%= SiteSetting.company_detail(:website) %>"
+                 placeholder="https://company.com"
+                 class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Primary Contact <span class="text-gray-400 font-normal">(optional)</span></label>
+          <input type="text" name="contact_person" value="<%= SiteSetting.company_detail(:contact_person) %>"
+                 placeholder="Jane Smith"
+                 class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Address <span class="text-gray-400 font-normal">(optional)</span></label>
+        <textarea name="address" rows="2" placeholder="123 Main St, Suite 100, New York, NY 10001"
+                  class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"><%= SiteSetting.company_detail(:address) %></textarea>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <%= f.submit "Save Company Details",
+            class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# ── Raw Settings ─────────────────────────────────────────────────────── %>
+  <% general_settings = @site_settings.reject { |s| s.key.start_with?("company_") } %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-base font-semibold text-gray-900">All Settings</h2>
+    </div>
+    <table class="w-full">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Key</th>
+          <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Value</th>
+          <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Updated</th>
+          <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-right">Actions</th>
+        </tr>
+      </thead>
+
+      <%# General settings %>
+      <tbody class="bg-white divide-y divide-gray-100">
+        <% general_settings.each do |setting| %>
+          <%= render "setting_row", setting: setting %>
+        <% end %>
+      </tbody>
+
+    </table>
+    <% if general_settings.empty? %>
+      <div class="text-center py-12 text-gray-400 text-sm">No settings configured.</div>
+    <% end %>
+  </div>
+
+</div>
+
+<script>
+  // Sync color picker → text input
+  document.querySelectorAll('input[type="color"]').forEach(function(picker) {
+    picker.addEventListener('input', function() {
+      this.nextElementSibling.value = this.value;
+    });
+  });
+
+  // Show selected filename next to file button
+  document.querySelectorAll('[data-file-input]').forEach(function(input) {
+    input.addEventListener('change', function() {
+      var label = this.closest('label').querySelector('.js-file-label');
+      if (label) label.textContent = this.files[0] ? this.files[0].name : 'Choose file\u2026';
+    });
+  });
+</script>

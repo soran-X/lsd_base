@@ -1,0 +1,53 @@
+<turbo-frame id="conversation" class="flex flex-col h-full overflow-hidden">
+  <%= turbo_stream_from "conversation_#{@conversation.id}" %>
+
+  <%# Absolute wrapper fills the frame by geometry — immune to flex chain issues %>
+  <%# mark-read for admin: fires on mouseenter (hover) or focusin (text box focus) %>
+  <div class="absolute inset-0 flex flex-col overflow-hidden"
+       <% if Current.user.admin? %>
+         data-controller="mark-read"
+         data-mark-read-url-value="<%= mark_read_conversation_path(@conversation) %>"
+         data-action="mouseenter->mark-read#run focusin->mark-read#run"
+       <% end %>>
+    <%# Header %>
+    <div class="px-5 py-3 border-b border-gray-200 bg-white flex items-center gap-3 flex-shrink-0">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0" style="background-color:var(--color-tertiary)">
+        <%= @conversation.user.initials %>
+      </div>
+      <div>
+        <p class="text-sm font-semibold text-gray-900"><%= @conversation.user.display_name %></p>
+        <p class="text-xs text-gray-400"><%= @conversation.user.email %></p>
+      </div>
+    </div>
+
+    <%# Messages %>
+    <div id="messages-<%= @conversation.id %>"
+         data-controller="message-list"
+         data-message-list-current-user-id-value="<%= Current.user.id %>"
+         class="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-3 bg-gray-50">
+      <% if @conversation.messages.empty? %>
+        <p class="text-center text-sm text-gray-400 py-8">No messages yet. Start the conversation!</p>
+      <% else %>
+        <%= render @conversation.messages %>
+      <% end %>
+    </div>
+
+    <%# Seen receipt — one element per party, only the relevant one is in this user's DOM %>
+    <% if Current.user.admin? %>
+      <%# Admin sees this: did the client read my last message? %>
+      <%= render "conversations/seen_receipt",
+            receipt_id: "admin-sent-seen-#{@conversation.id}",
+            seen:       @conversation.admin_messages_seen_by_client?,
+            seen_at:    @conversation.messages.where.not(user: @conversation.user).where.not(read_at: nil).last&.read_at %>
+    <% else %>
+      <%# Client sees this: did admin read my last message? %>
+      <%= render "conversations/seen_receipt",
+            receipt_id: "client-sent-seen-#{@conversation.id}",
+            seen:       @conversation.client_messages_seen_by_admin?,
+            seen_at:    @conversation.messages.where(user: @conversation.user).where.not(read_at: nil).last&.read_at %>
+    <% end %>
+
+    <%# Message form — always visible at the bottom %>
+    <%= render "messages/form", conversation: @conversation %>
+  </div>
+</turbo-frame>

@@ -1,0 +1,33 @@
+<dl class="divide-y divide-gray-100">
+  <div class="px-6 py-4 grid grid-cols-3 gap-4">
+    <dt class="text-sm font-medium text-gray-500">Title</dt>
+    <dd class="text-sm text-gray-900 col-span-2"><%= book.title %></dd>
+  </div>
+
+  <div class="px-6 py-4 grid grid-cols-3 gap-4">
+    <dt class="text-sm font-medium text-gray-500">Author ID</dt>
+    <dd class="text-sm text-gray-900 col-span-2"><%= book.author_id %></dd>
+  </div>
+
+  <div class="px-6 py-4 grid grid-cols-3 gap-4">
+    <dt class="text-sm font-medium text-gray-500">Description</dt>
+    <dd class="text-sm text-gray-900 col-span-2 whitespace-pre-line"><%= book.description.presence || "—" %></dd>
+  </div>
+
+  <div class="px-6 py-4 grid grid-cols-3 gap-4">
+    <dt class="text-sm font-medium text-gray-500">Published At</dt>
+    <dd class="text-sm text-gray-900 col-span-2">
+      <%= book.published_at&.strftime("%B %-d, %Y") || "—" %>
+    </dd>
+  </div>
+
+  <div class="px-6 py-4 grid grid-cols-3 gap-4">
+    <dt class="text-sm font-medium text-gray-500">Created At</dt>
+    <dd class="text-sm text-gray-900 col-span-2"><%= book.created_at.strftime("%B %-d, %Y at %H:%M") %></dd>
+  </div>
+
+  <div class="px-6 py-4 grid grid-cols-3 gap-4">
+    <dt class="text-sm font-medium text-gray-500">Updated At</dt>
+    <dd class="text-sm text-gray-900 col-span-2"><%= book.updated_at.strftime("%B %-d, %Y at %H:%M") %></dd>
+  </div>
+</dl>

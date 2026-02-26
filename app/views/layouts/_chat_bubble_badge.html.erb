@@ -1,0 +1,9 @@
+<% if count > 0 %>
+  <span id="chat-bubble-badge"
+        style="position:absolute;top:-0.5rem;right:-0.5rem;background:#ef4444;color:#fff;font-size:0.7rem;font-weight:700;min-width:1.25rem;height:1.25rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;padding:0 4px;pointer-events:none;box-shadow:0 0 0 2px #fff;animation:pulse 2s cubic-bezier(0.4,0,0.6,1) infinite"
+        class="animate-pulse">
+    <%= count > 9 ? "9+" : count %>
+  </span>
+<% else %>
+  <span id="chat-bubble-badge"></span>
+<% end %>

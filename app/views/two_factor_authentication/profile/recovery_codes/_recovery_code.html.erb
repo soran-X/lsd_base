@@ -1,0 +1,9 @@
+<% if recovery_code.used? %>
+  <li class="font-mono text-sm px-3 py-2 bg-gray-50 rounded-lg text-gray-300 line-through select-none">
+    <%= recovery_code.code %>
+  </li>
+<% else %>
+  <li class="font-mono text-sm px-3 py-2 bg-gray-50 rounded-lg text-gray-800 select-all">
+    <%= recovery_code.code %>
+  </li>
+<% end %>

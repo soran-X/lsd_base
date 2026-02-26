@@ -1,0 +1,27 @@
+<% if role.errors.any? %>
+  <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+    <h3 class="text-sm font-semibold text-red-800 mb-1"><%= pluralize(role.errors.count, "error") %> prevented saving:</h3>
+    <ul class="list-disc list-inside space-y-1">
+      <% role.errors.each do |error| %>
+        <li class="text-sm text-red-700"><%= error.full_message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<div class="space-y-4">
+  <div>
+    <%= f.label :name, class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :name,
+          class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
+          placeholder: "e.g. Manager" %>
+  </div>
+
+  <div>
+    <%= f.label :hierarchy_level, class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.number_field :hierarchy_level,
+          class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
+          placeholder: "1–100", min: 1, max: 100 %>
+    <p class="text-xs text-gray-400 mt-1">Max you can set: <%= Current.user.hierarchy_level %>.</p>
+  </div>
+</div>

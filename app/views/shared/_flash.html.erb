@@ -1,0 +1,13 @@
+<% if notice.present? %>
+  <div data-controller="flash" class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm mb-2 flex items-center justify-between">
+    <span><%= notice %></span>
+    <button data-action="flash#dismiss" class="ml-4 text-green-600 hover:text-green-800 font-medium">&times;</button>
+  </div>
+<% end %>
+
+<% if alert.present? %>
+  <div data-controller="flash" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm mb-2 flex items-center justify-between">
+    <span><%= alert %></span>
+    <button data-action="flash#dismiss" class="ml-4 text-red-600 hover:text-red-800 font-medium">&times;</button>
+  </div>
+<% end %>

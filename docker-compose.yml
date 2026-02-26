@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: clinic_core
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: clinic_core  # Simplified name to match healthcheck
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinic_core -d clinic_core"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    # This forces the server to bind to 0.0.0.0 so your browser can reach it
+    command: bash -c "rm -f tmp/pids/server.pid && bin/rails server -b 0.0.0.0"
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # URL updated to match the simplified DB name above
+      DATABASE_URL: postgresql://clinic_core:password@db:5432/clinic_core
+      RAILS_ENV: development
+      # Placeholder for your future keys
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    volumes:
+      - .:/rails
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+
+  css:
+    build: .
+    command: bin/rails tailwindcss:watch
+    volumes:
+      - .:/rails
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:

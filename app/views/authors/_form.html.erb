@@ -1,0 +1,42 @@
+<%= form_with model: author, class: "space-y-5" do |f| %>
+  <% if author.errors.any? %>
+    <div class="rounded-lg bg-red-50 border border-red-200 p-4">
+      <div class="flex items-start gap-3">
+        <svg class="h-5 w-5 text-red-400 mt-0.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+        </svg>
+        <div>
+          <h3 class="text-sm font-semibold text-red-800">
+            <%= pluralize(author.errors.count, "error") %> prevented this author from being saved:
+          </h3>
+          <ul class="mt-2 list-disc list-inside space-y-1">
+            <% author.errors.full_messages.each do |msg| %>
+              <li class="text-sm text-red-700"><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :name, class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :name,
+          class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
+          placeholder: "Author name" %>
+  </div>
+
+  <div>
+    <%= f.label :bio, class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_area :bio,
+          rows: 4,
+          class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
+          placeholder: "A short biography of the author…" %>
+  </div>
+
+  <div class="flex items-center gap-3 pt-2">
+    <%= f.submit class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+    <%= link_to "Cancel", authors_path,
+          class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+  </div>
+<% end %>

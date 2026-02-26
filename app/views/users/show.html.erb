@@ -1,0 +1,64 @@
+<% content_for :title, "#{@user.display_name} — ClinicDev" %>
+
+<div class="mb-6">
+  <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+    <%= link_to "Users", users_path, class: "hover:text-gray-700" %>
+    <span>/</span>
+    <span class="text-gray-900"><%= @user.display_name %></span>
+  </div>
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900"><%= @user.display_name %></h1>
+      <% if @user.full_name.present? %>
+        <p class="text-sm text-gray-500 mt-0.5"><%= @user.email %></p>
+      <% end %>
+    </div>
+    <% if Current.user.can_manage?(@user) %>
+      <%= link_to "Edit", edit_user_path(@user),
+          class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="max-w-lg">
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 divide-y divide-gray-100">
+    <% if @user.first_name.present? || @user.last_name.present? %>
+      <div class="px-6 py-4 flex justify-between text-sm">
+        <span class="font-medium text-gray-500">Name</span>
+        <span class="text-gray-900"><%= @user.full_name %></span>
+      </div>
+    <% end %>
+    <div class="px-6 py-4 flex justify-between text-sm">
+      <span class="font-medium text-gray-500">Email</span>
+      <span class="text-gray-900"><%= @user.email %></span>
+    </div>
+    <div class="px-6 py-4 flex justify-between text-sm">
+      <span class="font-medium text-gray-500">Role</span>
+      <span class="text-gray-900"><%= @user.role&.name || "None" %></span>
+    </div>
+    <div class="px-6 py-4 flex justify-between text-sm">
+      <span class="font-medium text-gray-500">Hierarchy Level</span>
+      <span class="text-gray-900"><%= @user.hierarchy_level %></span>
+    </div>
+    <div class="px-6 py-4 flex justify-between text-sm">
+      <span class="font-medium text-gray-500">Approved</span>
+      <% if @user.approved? %>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Yes</span>
+      <% else %>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Pending</span>
+      <% end %>
+    </div>
+    <div class="px-6 py-4 flex justify-between text-sm">
+      <span class="font-medium text-gray-500">Verified</span>
+      <span class="text-gray-900"><%= @user.verified? ? "Yes" : "No" %></span>
+    </div>
+    <div class="px-6 py-4 flex justify-between text-sm">
+      <span class="font-medium text-gray-500">Auth Provider</span>
+      <span class="text-gray-900"><%= @user.provider&.capitalize || "Email/Password" %></span>
+    </div>
+    <div class="px-6 py-4 flex justify-between text-sm">
+      <span class="font-medium text-gray-500">Member Since</span>
+      <span class="text-gray-900"><%= @user.created_at.strftime("%B %d, %Y") %></span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+<div id="message-form-<%= conversation.id %>" class="flex-shrink-0 border-t border-gray-200 bg-white px-4 py-3">
+  <%= form_with url: conversation_messages_path(conversation),
+      scope: :message,
+      data: { controller: "message-form", action: "turbo:submit-end->message-form#reset" },
+      class: "flex items-center gap-2" do |f| %>
+    <%= f.text_field :body,
+        placeholder: "Type a message…",
+        autocomplete: "off",
+        data: { message_form_target: "input" },
+        class: "flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+    <%= f.submit "Send",
+        class: "px-4 py-2 text-white text-sm font-medium rounded-full cursor-pointer transition-colors",
+        style: "background-color:var(--color-primary)" %>
+  <% end %>
+</div>

@@ -1,0 +1,54 @@
+<% content_for :title, "Sign In — #{app_name}" %>
+
+<div class="min-h-screen flex items-center justify-center" style="background-color: var(--color-secondary)">
+  <div class="max-w-md w-full px-6">
+    <div class="text-center mb-8">
+      <%= image_tag logo_url, alt: app_name, class: "max-h-16 max-w-full object-contain mx-auto mb-4",
+          onerror: "this.style.display='none';this.nextElementSibling.style.display='block'" %>
+      <h1 class="text-3xl font-bold mb-4" style="display:none;color:var(--color-on-secondary)"><%= app_name %></h1>
+      <p class="mt-2 text-sm" style="color:var(--color-on-secondary-subtle)">Sign in to your account</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-8">
+      <%= form_with url: sign_in_path, class: "space-y-5" do |f| %>
+        <div>
+          <%= f.label :email, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.email_field :email, value: params[:email_hint],
+              required: true, autofocus: true, autocomplete: "email",
+              class: "block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <%= f.label :password, class: "block text-sm font-medium text-gray-700" %>
+            <%= link_to "Forgot password?", new_identity_password_reset_path,
+                class: "text-xs text-indigo-600 hover:text-indigo-800" %>
+          </div>
+          <%= f.password_field :password, required: true, autocomplete: "current-password",
+              class: "block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+        </div>
+
+        <%= f.submit "Sign in",
+            class: "w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+      <% end %>
+
+      <% if SiteSetting.allow_public_signup? %>
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
+          <div class="relative flex justify-center text-xs text-gray-400 bg-white px-2">or continue with</div>
+        </div>
+
+        <%= button_to "Sign in with Google", "/auth/google_oauth2",
+            "data-turbo" => false,
+            class: "w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors" %>
+      <% end %>
+    </div>
+
+    <% if SiteSetting.allow_public_signup? %>
+      <p class="text-center mt-6 text-sm" style="color:var(--color-on-secondary-subtle)">
+        Don't have an account?
+        <a href="<%= sign_up_path %>" class="font-semibold hover:opacity-80" style="color:var(--color-on-secondary)">Sign up</a>
+      </p>
+    <% end %>
+  </div>
+</div>

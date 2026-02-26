@@ -1,0 +1,50 @@
+<%= form_with model: book, class: "space-y-6" do |f| %>
+  <% if book.errors.any? %>
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-sm text-red-700">
+      <p class="font-medium mb-1">
+        <%= pluralize(book.errors.count, "error") %> prevented this book from being saved:
+      </p>
+      <ul class="list-disc list-inside space-y-1">
+        <% book.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden p-6 space-y-5">
+    <div>
+      <%= f.label :title, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.text_field :title,
+            placeholder: "Enter book title",
+            class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+    </div>
+
+    <div>
+      <%= f.label :author_id, "Author ID", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.text_field :author_id,
+            placeholder: "Enter author ID",
+            class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+    </div>
+
+    <div>
+      <%= f.label :description, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.text_area :description,
+            rows: 5,
+            placeholder: "Enter a short description of the book",
+            class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-y" %>
+    </div>
+
+    <div>
+      <%= f.label :published_at, "Published At", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.date_field :published_at,
+            class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <%= f.submit class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+    <%= link_to "Cancel", books_path,
+          class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+  </div>
+<% end %>

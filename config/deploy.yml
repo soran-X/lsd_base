@@ -1,0 +1,53 @@
+# Name of your application.
+service: clinic_core
+
+# Container image on GitHub Container Registry.
+image: ghcr.io/GITHUB_USERNAME/clinic_core
+
+# Deploy to these servers.
+servers:
+  web:
+    - DROPLET_IP
+
+# SSL via Kamal proxy with Let's Encrypt.
+proxy:
+  ssl: true
+  host: YOUR_DOMAIN_HERE
+
+# GitHub Container Registry.
+registry:
+  server: ghcr.io
+  username:
+    - KAMAL_REGISTRY_USERNAME
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+# Builder — use amd64 for Linux servers.
+builder:
+  arch: amd64
+
+# Environment variables injected into the container.
+env:
+  clear:
+    RAILS_LOG_TO_STDOUT: true
+  secret:
+    - RAILS_MASTER_KEY
+    - DATABASE_URL
+    - GOOGLE_CLIENT_ID
+    - GOOGLE_CLIENT_SECRET
+    - POSTGRES_PASSWORD
+
+# PostgreSQL accessory.
+accessories:
+  db:
+    image: postgres:16-alpine
+    host: DROPLET_IP
+    port: 5432
+    env:
+      clear:
+        POSTGRES_USER: clinic_core
+        POSTGRES_DB: clinic_core_production
+      secret:
+        - POSTGRES_PASSWORD
+    volumes:
+      - /var/lib/clinic_core/postgres:/var/lib/postgresql/data

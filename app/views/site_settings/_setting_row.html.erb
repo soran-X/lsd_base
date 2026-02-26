@@ -1,0 +1,44 @@
+<tr class="hover:bg-gray-50 transition-colors">
+  <td class="px-6 py-4 text-sm font-mono font-medium text-gray-900"><%= setting.key %></td>
+  <td class="px-6 py-4 text-sm text-gray-600">
+    <% if setting.key.end_with?("_color") %>
+      <span class="inline-flex items-center gap-2">
+        <span class="inline-block w-4 h-4 rounded border border-gray-200" style="background:<%= setting.value %>"></span>
+        <%= setting.value %>
+      </span>
+    <% elsif setting.key == "app_logo" %>
+      <%= image_tag logo_url, alt: "Logo", class: "h-6 object-contain" %>
+    <% elsif setting.key == "favicon_icon" %>
+      <% if setting.logo.attached? %>
+        <% fav_blob = setting.logo.blob %>
+        <% fav_src = rails_service_blob_proxy_path(signed_id: fav_blob.signed_id, filename: fav_blob.filename.to_s) %>
+      <% else %>
+        <% fav_src = "/icon.svg" %>
+      <% end %>
+      <div class="flex items-center gap-2">
+        <div class="h-7 w-7 rounded bg-gray-800 flex items-center justify-center">
+          <img src="<%= fav_src %>" width="16" height="16" style="width:16px;height:16px;object-fit:contain;">
+        </div>
+        <div class="h-7 w-7 rounded bg-white border border-gray-200 flex items-center justify-center">
+          <img src="<%= fav_src %>" width="16" height="16" style="width:16px;height:16px;object-fit:contain;">
+        </div>
+      </div>
+    <% elsif setting.value.present? %>
+      <%= setting.value %>
+    <% else %>
+      <span class="text-gray-300 italic">—</span>
+    <% end %>
+  </td>
+  <td class="px-6 py-4 text-sm text-gray-400"><%= setting.updated_at.strftime("%b %d, %Y") %></td>
+  <td class="px-6 py-4 text-sm text-right">
+    <div class="flex items-center justify-end gap-2">
+      <%= link_to "Edit", edit_site_setting_path(setting),
+          class: "inline-flex items-center px-3 py-1.5 bg-white text-gray-700 text-xs font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+      <% if SiteSetting::DEFAULTS.key?(setting.key) %>
+        <%= button_to "Reset", reset_site_setting_path(setting), method: :patch,
+            data: { turbo_confirm: "Reset '#{setting.key}' to its default value?" },
+            class: "inline-flex items-center px-3 py-1.5 bg-white text-gray-600 text-xs font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+      <% end %>
+    </div>
+  </td>
+</tr>

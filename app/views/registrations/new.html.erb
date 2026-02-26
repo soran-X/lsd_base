@@ -1,0 +1,83 @@
+<% content_for :title, "Sign Up — #{app_name}" %>
+
+<div class="min-h-screen flex items-center justify-center" style="background-color: var(--color-secondary)">
+  <div class="max-w-md w-full px-6 py-8">
+    <div class="text-center mb-8">
+      <%= image_tag logo_url, alt: app_name, class: "max-h-16 max-w-full object-contain mx-auto mb-4",
+          onerror: "this.style.display='none';this.nextElementSibling.style.display='block'" %>
+      <h1 class="text-3xl font-bold mb-4" style="display:none;color:var(--color-on-secondary)"><%= app_name %></h1>
+      <p class="mt-2 text-sm" style="color:var(--color-on-secondary-subtle)">Create your account</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-8">
+      <% if @user.errors.any? %>
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <h3 class="text-sm font-semibold text-red-800 mb-2"><%= pluralize(@user.errors.count, "error") %>:</h3>
+          <ul class="list-disc list-inside space-y-1">
+            <% @user.errors.each do |error| %>
+              <li class="text-sm text-red-700"><%= error.full_message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <%= form_with url: sign_up_path, class: "space-y-5" do |f| %>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <%= f.label :first_name, "First Name", class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <%= f.text_field :first_name, value: @user.first_name,
+                required: true, autofocus: true, autocomplete: "given-name",
+                class: "block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+          </div>
+          <div>
+            <%= f.label :last_name, "Last Name", class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <%= f.text_field :last_name, value: @user.last_name,
+                required: true, autocomplete: "family-name",
+                class: "block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+          </div>
+        </div>
+
+        <div>
+          <%= f.label :email, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.email_field :email, value: @user.email,
+              required: true, autocomplete: "email",
+              class: "block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+        </div>
+
+        <div>
+          <%= f.label :password, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.password_field :password, required: true, autocomplete: "new-password",
+              class: "block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+          <p class="text-xs text-gray-400 mt-1">Minimum 12 characters.</p>
+        </div>
+
+        <div>
+          <%= f.label :password_confirmation, "Confirm Password", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.password_field :password_confirmation, required: true, autocomplete: "new-password",
+              class: "block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+        </div>
+
+        <p class="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+          Your account will require admin approval before you can access the dashboard.
+        </p>
+
+        <%= f.submit "Create Account",
+            class: "w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+      <% end %>
+
+      <div class="relative my-6">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
+        <div class="relative flex justify-center text-xs text-gray-400 bg-white px-2">or continue with</div>
+      </div>
+
+      <%= button_to "Sign up with Google", "/auth/google_oauth2",
+          "data-turbo" => false,
+          class: "w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors" %>
+    </div>
+
+    <p class="text-center mt-6 text-sm" style="color:var(--color-on-secondary-subtle)">
+      Already have an account?
+      <a href="<%= sign_in_path %>" class="font-semibold hover:opacity-80" style="color:var(--color-on-secondary)">Sign in</a>
+    </p>
+  </div>
+</div>

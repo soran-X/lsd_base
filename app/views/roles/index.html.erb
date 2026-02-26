@@ -1,0 +1,45 @@
+<% content_for :title, "Roles — ClinicDev" %>
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">Roles</h1>
+  <%= link_to "New Role", new_role_path,
+      class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors" %>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+  <table class="w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Name</th>
+        <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Hierarchy Level</th>
+        <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Users</th>
+        <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-right">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="bg-white divide-y divide-gray-100">
+      <% @roles.each do |role| %>
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-4 text-sm font-semibold text-gray-900"><%= role.name %></td>
+          <td class="px-6 py-4 text-sm text-gray-600">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+              <%= role.hierarchy_level %>
+            </span>
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-600"><%= role.users.count %></td>
+          <td class="px-6 py-4 text-sm text-right">
+            <div class="flex items-center justify-end gap-2">
+              <%= link_to "Edit", edit_role_path(role),
+                  class: "inline-flex items-center px-3 py-1.5 bg-white text-gray-700 text-xs font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+              <%= button_to "Delete", role_path(role), method: :delete,
+                  data: { turbo_confirm: "Delete role #{role.name}? Users with this role will lose it." },
+                  class: "inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors" %>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if @roles.empty? %>
+    <div class="text-center py-12 text-gray-400 text-sm">No roles defined yet.</div>
+  <% end %>
+</div>
