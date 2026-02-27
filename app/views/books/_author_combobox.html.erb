@@ -1,0 +1,82 @@
+<%#
+  Reusable author combobox component.
+
+  Locals:
+    label      – Section heading, e.g. "Authors" or "Translators"
+    role       – "Author" or "Translator" (used in create prompt)
+    field_name – Hidden input name, e.g. "book[author_ids][]"
+    selected   – Array of Author records already associated (for edit forms)
+%>
+<% selected ||= [] %>
+
+<div data-controller="author-combobox"
+     data-author-combobox-search-url-value="<%= search_authors_path(format: :json) %>"
+     data-author-combobox-create-url-value="<%= authors_path(format: :json) %>"
+     data-author-combobox-field-name-value="<%= field_name %>"
+     data-author-combobox-role-value="<%= role %>"
+     class="relative">
+
+  <p class="block text-sm font-medium text-gray-700 mb-3"><%= label %></p>
+
+  <%# Chip area — pre-populated on edit, JS appends new ones -%>
+  <div data-author-combobox-target="chips"
+       class="flex flex-wrap gap-2 mb-3 empty:hidden">
+    <% selected.each do |author| %>
+      <div class="inline-flex items-center gap-2 pl-4 pr-2.5 py-2 rounded-full text-sm
+                  font-medium bg-indigo-50 text-indigo-800 border border-indigo-200"
+           data-author-id="<%= author.id %>"
+           data-author-label="<%= author.display_name %>">
+        <span><%= author.display_name %></span>
+        <input type="hidden" name="<%= field_name %>" value="<%= author.id %>">
+        <button type="button"
+                data-author-id="<%= author.id %>"
+                data-action="click->author-combobox#removeChip"
+                title="Remove"
+                class="rounded-full p-1 hover:bg-indigo-200 text-indigo-400 hover:text-indigo-700
+                       focus:outline-none focus:ring-1 focus:ring-indigo-400 transition-colors">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-2.72 2.72a.75.75 0 101.06 1.06L10 11.06l2.72 2.72a.75.75 0 101.06-1.06L11.06 10l2.72-2.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+          </svg>
+        </button>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Search input -%>
+  <div class="relative">
+    <input type="text"
+           data-author-combobox-target="input"
+           data-action="input->author-combobox#onInput keydown->author-combobox#onKeydown"
+           placeholder='<%= role %> — type "Last, First" to search or create'
+           autocomplete="off"
+           class="block w-full rounded-lg border border-gray-300 pl-3.5 pr-9 py-2.5 text-sm
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                  placeholder:text-gray-400">
+
+    <%# Spinner -%>
+    <div data-author-combobox-target="spinner"
+         class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center hidden">
+      <svg class="animate-spin w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      </svg>
+    </div>
+  </div>
+
+  <%# Dropdown -%>
+  <div data-author-combobox-target="dropdown"
+       class="hidden absolute z-50 mt-1 w-full bg-white border border-gray-200
+              rounded-lg shadow-lg overflow-hidden"
+       role="listbox"
+       hidden>
+    <ul data-author-combobox-target="list"
+        class="py-1 max-h-60 overflow-y-auto divide-y divide-gray-50"
+        role="presentation">
+    </ul>
+  </div>
+
+  <p class="mt-2 text-xs text-gray-400">
+    Type to search. No match? Type in <span class="font-mono">Last, First</span> format to create inline.
+  </p>
+</div>

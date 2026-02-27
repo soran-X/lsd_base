@@ -15,7 +15,9 @@ class SiteSetting < ApplicationRecord
     "company_phone"          => "",
     "company_website"        => "",
     "company_address"        => "",
-    "company_contact_person" => ""
+    "company_contact_person" => "",
+    "book_list_view"         => "table",
+    "book_history_visibility" => "staff"
   }.freeze
 
   COMPANY_KEYS = %w[

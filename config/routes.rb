@@ -50,18 +50,23 @@ Rails.application.routes.draw do
     resource :approval, only: %i[update], controller: "approvals"
   end
   resources :roles
+  resources :genres
+  resources :subgenres
+  resources :client_types
   resources :site_settings, except: %i[new create destroy] do
     member { patch :reset }
     collection do
       patch :update_branding
       patch :update_company
+      patch :update_display
     end
   end
 
   # Scaffolded content resources
   resources :books
-  resources :authors
-  resources :scouts
+  resources :authors do
+    collection { get :search, defaults: { format: :json } }
+  end
 
   # Dashboard & misc
   get  "dashboard",        to: "home#dashboard", as: :dashboard

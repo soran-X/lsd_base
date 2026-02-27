@@ -3,7 +3,6 @@ class Permission < ApplicationRecord
   ALL_PERMISSIONS = {
     "books"         => %w[index show new edit destroy],
     "authors"       => %w[index show new edit destroy],
-    "scouts"        => %w[index show new edit destroy],
     "users"         => %w[index show edit destroy],
     "roles"         => %w[index show new edit destroy],
     "site_settings" => %w[index show edit]

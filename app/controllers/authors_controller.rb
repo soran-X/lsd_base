@@ -1,12 +1,23 @@
 class AuthorsController < ApplicationController
-  before_action :set_author, only: %i[ show edit update destroy ]
+  before_action :set_author, only: %i[show edit update destroy]
 
-  # GET /authors or /authors.json
+  # GET /authors
   def index
-    @authors = Author.all
+    @authors = Author.kept.order(:last_name, :first_name)
   end
 
-  # GET /authors/1 or /authors/1.json
+  # GET /authors/search.json?q=García
+  def search
+    results = if params[:q].present?
+      Author.kept.search_by_name(params[:q]).limit(12)
+    else
+      Author.kept.order(:last_name, :first_name).limit(12)
+    end
+
+    render json: results.map { |a| { id: a.id, label: a.display_name } }
+  end
+
+  # GET /authors/1
   def show
   end
 
@@ -19,14 +30,14 @@ class AuthorsController < ApplicationController
   def edit
   end
 
-  # POST /authors or /authors.json
+  # POST /authors
   def create
     @author = Author.new(author_params)
 
     respond_to do |format|
       if @author.save
         format.html { redirect_to @author, notice: "Author was successfully created." }
-        format.json { render :show, status: :created, location: @author }
+        format.json { render json: { id: @author.id, label: @author.display_name }, status: :created }
       else
         format.html { render :new, status: :unprocessable_entity }
         format.json { render json: @author.errors, status: :unprocessable_entity }
@@ -34,12 +45,12 @@ class AuthorsController < ApplicationController
     end
   end
 
-  # PATCH/PUT /authors/1 or /authors/1.json
+  # PATCH/PUT /authors/1
   def update
     respond_to do |format|
       if @author.update(author_params)
         format.html { redirect_to @author, notice: "Author was successfully updated.", status: :see_other }
-        format.json { render :show, status: :ok, location: @author }
+        format.json { render json: { id: @author.id, label: @author.display_name } }
       else
         format.html { render :edit, status: :unprocessable_entity }
         format.json { render json: @author.errors, status: :unprocessable_entity }
@@ -47,24 +58,23 @@ class AuthorsController < ApplicationController
     end
   end
 
-  # DELETE /authors/1 or /authors/1.json
+  # DELETE /authors/1
   def destroy
-    @author.destroy!
+    @author.discard!
 
     respond_to do |format|
-      format.html { redirect_to authors_path, notice: "Author was successfully destroyed.", status: :see_other }
+      format.html { redirect_to authors_path, notice: "Author was successfully removed.", status: :see_other }
       format.json { head :no_content }
     end
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_author
-      @author = Author.find(params.expect(:id))
-    end
 
-    # Only allow a list of trusted parameters through.
-    def author_params
-      params.expect(author: [ :name, :bio ])
-    end
+  def set_author
+    @author = Author.kept.find(params.expect(:id))
+  end
+
+  def author_params
+    params.expect(author: [:first_name, :last_name, :bio])
+  end
 end

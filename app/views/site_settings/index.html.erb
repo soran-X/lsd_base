@@ -202,6 +202,109 @@
     <% end %>
   </div>
 
+  <%# ── Display Preferences ───────────────────────────────────────────────── %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <h2 class="text-base font-semibold text-gray-900 mb-1">Display Preferences</h2>
+    <p class="text-sm text-gray-500 mb-5">Control how the books list is presented to all users.</p>
+
+    <%= form_with url: update_display_site_settings_path, method: :patch do |f| %>
+      <div class="mb-5">
+        <p class="text-sm font-medium text-gray-700 mb-3">Books list style</p>
+        <% current_view = SiteSetting["book_list_view"].presence || "table" %>
+        <style>
+          .view-option-card { border: 2px solid #e5e7eb; transition: border-color 0.15s; }
+          .view-option-card:hover { border-color: #d1d5db; }
+          .view-option-card:has(input:checked) {
+            border-color: var(--color-primary, #4f46e5);
+            background-color: color-mix(in srgb, var(--color-primary, #4f46e5) 8%, white);
+          }
+        </style>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg">
+
+          <%# Table option %>
+          <label class="view-option-card relative flex cursor-pointer rounded-xl p-4">
+            <input type="radio" name="book_list_view" value="table"
+                   <%= "checked" if current_view == "table" %>
+                   class="sr-only">
+            <div class="flex flex-col gap-2 w-full">
+              <%# Mini table preview %>
+              <div class="rounded border border-gray-200 overflow-hidden text-xs">
+                <div class="bg-gray-100 px-2 py-1 flex gap-3 text-gray-500 font-medium">
+                  <span class="flex-1">Title</span><span>Authors</span><span>Year</span>
+                </div>
+                <div class="divide-y divide-gray-100">
+                  <% 2.times do %>
+                    <div class="px-2 py-1 flex gap-3">
+                      <span class="flex-1 bg-gray-200 rounded h-2 mt-1"></span>
+                      <span class="bg-gray-200 rounded h-2 mt-1 w-12"></span>
+                      <span class="bg-gray-200 rounded h-2 mt-1 w-6"></span>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+              <p class="text-sm font-medium text-gray-800">Table</p>
+              <p class="text-xs text-gray-500">Compact rows — best for large lists.</p>
+            </div>
+          </label>
+
+          <%# Catalog option %>
+          <label class="view-option-card relative flex cursor-pointer rounded-xl p-4">
+            <input type="radio" name="book_list_view" value="catalog"
+                   <%= "checked" if current_view == "catalog" %>
+                   class="sr-only">
+            <div class="flex flex-col gap-2 w-full">
+              <%# Mini catalog preview %>
+              <div class="rounded border border-gray-200 divide-y divide-gray-100 overflow-hidden text-xs">
+                <% 2.times do %>
+                  <div class="px-2 py-1.5 space-y-1">
+                    <div class="bg-gray-300 rounded h-2.5 w-3/4"></div>
+                    <div class="bg-gray-200 rounded h-1.5 w-1/2"></div>
+                    <div class="flex gap-1 pt-0.5">
+                      <span class="bg-emerald-200 rounded-full h-2 w-8"></span>
+                      <span class="bg-amber-200 rounded-full h-2 w-10"></span>
+                      <span class="bg-rose-200 rounded-full h-2 w-7"></span>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+              <p class="text-sm font-medium text-gray-800">Catalog</p>
+              <p class="text-xs text-gray-500">Rich entries with tags and metadata.</p>
+            </div>
+          </label>
+
+        </div>
+      </div>
+
+      <%# ── Book History Visibility ──────────────────────────────────────── %>
+      <div class="mt-6 pt-5 border-t border-gray-100">
+        <p class="text-sm font-medium text-gray-700 mb-1">Book history visibility</p>
+        <p class="text-xs text-gray-400 mb-3">Controls who can see the "Recent Updates" change log on a book's page.</p>
+        <% current_vis = SiteSetting["book_history_visibility"].presence || "staff" %>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <% [["all", "Everyone", "All users including Clients"],
+              ["staff", "Staff & above (default)", "Scouts, Admins — hides from Clients"],
+              ["admin", "Admins only", "Only users with Admin role or higher"]].each do |value, label, hint| %>
+            <label class="flex items-start gap-3 flex-1 cursor-pointer rounded-lg border p-3 transition-colors
+                          <%= current_vis == value ? "border-indigo-400 bg-indigo-50" : "border-gray-200 hover:border-gray-300" %>">
+              <input type="radio" name="book_history_visibility" value="<%= value %>"
+                     <%= "checked" if current_vis == value %>
+                     class="mt-0.5 shrink-0" style="accent-color: var(--color-primary)">
+              <div>
+                <p class="text-sm font-medium text-gray-800"><%= label %></p>
+                <p class="text-xs text-gray-400"><%= hint %></p>
+              </div>
+            </label>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-5">
+        <%= f.submit "Save Display Preferences",
+            class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+
   <%# ── Raw Settings ─────────────────────────────────────────────────────── %>
   <% general_settings = @site_settings.reject { |s| s.key.start_with?("company_") } %>
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

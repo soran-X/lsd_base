@@ -1,0 +1,41 @@
+<%# ── Header ─────────────────────────────────────────────────────────────────── %>
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Client Types</h1>
+    <p class="text-sm text-gray-500 mt-0.5">Manage subscription types used to filter which books clients can see.</p>
+  </div>
+  <%= link_to "New Client Type", new_client_type_path,
+        class: "inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-sm
+                font-medium rounded-lg hover:bg-indigo-700 transition-colors" %>
+</div>
+
+<%# ── List ──────────────────────────────────────────────────────────────────── %>
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+  <% if @client_types.any? %>
+    <ul class="divide-y divide-gray-100">
+      <% @client_types.each do |ct| %>
+        <li class="flex items-center justify-between px-5 py-3 hover:bg-gray-50 group">
+          <div class="flex items-center gap-3">
+            <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <%= ct.name %>
+            </span>
+            <span class="text-xs text-gray-400"><%= pluralize(ct.books.count, "book") %></span>
+          </div>
+          <div class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <%= link_to "Edit", edit_client_type_path(ct),
+                  class: "text-xs text-gray-500 hover:text-gray-700 font-medium" %>
+            <%= button_to "Delete", client_type_path(ct), method: :delete,
+                  data: { turbo_confirm: "Delete \"#{ct.name}\"? Books using it will lose this type." },
+                  class: "text-xs text-red-500 hover:text-red-700 font-medium bg-transparent border-0 cursor-pointer p-0" %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="text-center py-16 text-sm text-gray-400">
+      <p class="mb-3">No client types yet.</p>
+      <%= link_to "Add the first client type", new_client_type_path,
+            class: "text-indigo-600 hover:text-indigo-800 font-medium" %>
+    </div>
+  <% end %>
+</div>

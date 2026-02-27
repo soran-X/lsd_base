@@ -15,6 +15,9 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 # Authorization & Security
 gem "rack-attack"
 
+# Search
+gem "pg_search"
+
 # Utilities
 gem "pagy"
 gem "discard"

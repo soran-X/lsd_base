@@ -8,3 +8,108 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+/* ── Collapsible sidebar ───────────────────────────────────────────────────
+   When .sidebar-collapsed is on the <aside>, child elements opt in/out
+   via semantic class names rather than JS-per-element toggling.
+   ────────────────────────────────────────────────────────────────────────── */
+
+aside { transition: width 0.2s ease; }
+
+/* Labels: "Books", "Authors", section headings, footer text */
+.sidebar-label,
+.sidebar-section,
+.sidebar-footer  { transition: opacity 0.15s ease, width 0.2s ease; }
+
+.sidebar-collapsed .sidebar-label,
+.sidebar-collapsed .sidebar-section,
+.sidebar-collapsed .sidebar-footer  {
+  display: none !important;
+}
+
+/* Nav links: center icon when collapsed */
+.sidebar-collapsed .sidebar-link {
+  justify-content: center;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+/* Show the icon-only sign-out button only when collapsed */
+.sidebar-collapsed .sidebar-collapsed-only {
+  display: flex !important;
+}
+
+/* ── Trix rich-text editor ─────────────────────────────────────────────────
+   Let Trix own its toolbar styles. We only set:
+   - toolbar background/border to match the app's grey palette
+   - active button accent to indigo
+   - hide the file-attachment button (not relevant here)
+   ────────────────────────────────────────────────────────────────────────── */
+
+trix-toolbar .trix-button-row {
+  background-color: #f4f1eb;
+  border-bottom: 1px solid #e5e0d8;
+  /* Round the top corners to match the wrapper's border-radius */
+  border-radius: calc(0.5rem - 1px) calc(0.5rem - 1px) 0 0;
+}
+
+trix-toolbar .trix-button.trix-active {
+  background: #c8dfd4;
+  color: #2d5a40;
+}
+
+/* Hide file-attachment group */
+trix-toolbar .trix-button-group--file-tools {
+  display: none !important;
+}
+
+trix-editor {
+  outline: none;
+  border: none !important;
+  /* No padding override here — the JS inline style (0.5rem 0.75rem) applies cleanly */
+  margin: 0 !important;
+  /* Round the bottom corners to match the wrapper's border-radius */
+  border-radius: 0 0 calc(0.5rem - 1px) calc(0.5rem - 1px) !important;
+  box-shadow: none !important;
+}
+
+/* ── Content styles — apply inside the editor AND in show/read views ─────── */
+.trix-content ul  { list-style: disc    !important; padding-left: 1.5rem  !important; }
+.trix-content ol  { list-style: decimal !important; padding-left: 1.5rem  !important; }
+.trix-content li  { margin-bottom: 0.15rem; }
+
+.trix-content blockquote {
+  border-left: 3px solid #b87333;
+  padding-left: 0.875rem;
+  color: #6b7280;
+  font-style: italic;
+  margin: 0.5rem 0 0.5rem 0.25rem;
+}
+
+.trix-content h1 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0.75rem 0 0.25rem;
+  color: #1c1917;
+}
+
+.trix-content a   { color: #3d6b52; text-decoration: underline; }
+
+.trix-content pre {
+  background-color: #f4f1eb;
+  border: 1px solid #e5e0d8;
+  border-radius: 0.375rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.8125rem;
+}
+
+/* Nested list indentation */
+.trix-content ul ul,
+.trix-content ol ol,
+.trix-content ul ol,
+.trix-content ol ul { padding-left: 1.25rem !important; }
+
+.catalog-card {
+  padding: 30px !important;
+}

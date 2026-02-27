@@ -2,6 +2,7 @@ class Role < ApplicationRecord
   HIERARCHY = {
     "SuperAdmin" => 100,
     "Admin"      => 50,
+    "Scout"      => 25,
     "Client"     => 10
   }.freeze
 

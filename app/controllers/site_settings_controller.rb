@@ -46,6 +46,20 @@ class SiteSettingsController < ApplicationController
     redirect_to site_settings_path, notice: "Company details updated."
   end
 
+  def update_display
+    view = params[:book_list_view].to_s
+    view = "table" unless %w[table catalog].include?(view)
+    SiteSetting.find_or_create_by!(key: "book_list_view") { |s| s.value = "table" }
+               .update!(value: view)
+
+    visibility = params[:book_history_visibility].to_s
+    visibility = "staff" unless %w[all staff admin].include?(visibility)
+    SiteSetting.find_or_create_by!(key: "book_history_visibility") { |s| s.value = "staff" }
+               .update!(value: visibility)
+
+    redirect_to site_settings_path, notice: "Display preferences updated."
+  end
+
   def update_branding
     color_defaults = {
       "primary_color"   => "#4f46e5",

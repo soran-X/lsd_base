@@ -1,49 +1,176 @@
-<div class="flex items-center justify-between mb-6">
+<%# ── Header row ──────────────────────────────────────────────────────────── %>
+<div class="flex items-center justify-between mb-6 gap-4">
   <h1 class="text-2xl font-bold text-gray-900">Books</h1>
   <%= link_to "New Book", new_book_path,
-        class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors" %>
+        class: "inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity shrink-0",
+        style: "background-color: var(--color-primary)" %>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-  <table class="w-full divide-y divide-gray-200">
-    <thead class="bg-gray-50">
-      <tr>
-        <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Title</th>
-        <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Author ID</th>
-        <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Published</th>
-        <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-right">Actions</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-200">
-      <% @books.each do |book| %>
-        <tr class="bg-white hover:bg-gray-50 transition-colors">
-          <td class="px-6 py-4 text-sm text-gray-900 font-medium"><%= book.title %></td>
-          <td class="px-6 py-4 text-sm text-gray-900"><%= book.author_id %></td>
-          <td class="px-6 py-4 text-sm text-gray-900">
-            <%= book.published_at&.strftime("%B %-d, %Y") %>
-          </td>
-          <td class="px-6 py-4 text-sm text-right">
-            <div class="inline-flex items-center gap-2">
-              <%= link_to "Show", book_path(book),
-                    class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
-              <%= link_to "Edit", edit_book_path(book),
-                    class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
-              <%= button_to "Delete", book_path(book),
-                    method: :delete,
-                    data: { turbo_confirm: "Are you sure you want to delete \"#{book.title}\"?" },
-                    class: "inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" %>
-            </div>
-          </td>
-        </tr>
-      <% end %>
+<%# ── Search form ─────────────────────────────────────────────────────────── %>
+<%= form_with url: books_path, method: :get, local: true,
+      class: "mb-5 flex items-center gap-2" do |f| %>
+  <%= f.text_field :q,
+        value: @query,
+        placeholder: "Search by title, author, synopsis…",
+        autocomplete: "off",
+        class: "flex-1 max-w-lg px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg
+                text-gray-800 placeholder-gray-400
+                focus:outline-none focus:ring-2 focus:border-transparent transition-shadow",
+        style: "--tw-ring-color: var(--color-primary)" %>
+  <button type="submit"
+          class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-opacity"
+          style="background-color: var(--color-primary)">
+    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
+    </svg>
+    Search
+  </button>
+  <% if @query.present? %>
+    <%= link_to "Clear", books_path,
+          class: "px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" %>
+  <% end %>
+<% end %>
 
-      <% if @books.empty? %>
+<%# ── Search context banner ───────────────────────────────────────────────── %>
+<% if @query.present? %>
+  <div class="mb-4 flex items-center gap-2 text-sm text-gray-600">
+    <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
+    </svg>
+    <span>
+      <strong><%= @books.size %></strong>
+      <%= @books.size == 1 ? "result" : "results" %> for
+      <em class="font-medium text-gray-800">"<%= @query %>"</em>
+      — sorted by relevance
+    </span>
+  </div>
+<% end %>
+
+<%# ── Books ───────────────────────────────────────────────────────────────── %>
+<% if @catalog_view %>
+
+  <%# ── Catalog view ────────────────────────────────────────────────────── %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 divide-y divide-gray-100 overflow-hidden">
+    <% @books.each do |book| %>
+      <%= render "book_catalog", book: book %>
+    <% end %>
+
+    <% if @books.empty? %>
+      <div class="px-6 py-12 text-center text-sm text-gray-500">
+        <% if @query.present? %>
+          No books matched <em>"<%= @query %>"</em>.
+          <%= link_to "Clear search", books_path, class: "text-gray-700 hover:underline font-medium" %>
+        <% else %>
+          No books found. <%= link_to "Add the first one", new_book_path, class: "hover:underline font-medium", style: "color: var(--color-primary)" %>.
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+<% else %>
+
+  <%# ── Table view ──────────────────────────────────────────────────────── %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <table class="w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
         <tr>
-          <td colspan="4" class="px-6 py-12 text-center text-sm text-gray-500">
-            No books found. <%= link_to "Add the first one", new_book_path, class: "text-indigo-600 hover:underline font-medium" %>.
-          </td>
+          <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Title</th>
+          <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Authors</th>
+          <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Year</th>
+          <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Status</th>
+          <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-left">Last Updated</th>
+          <th class="text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3 text-right">Actions</th>
         </tr>
-      <% end %>
-    </tbody>
-  </table>
-</div>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <% @books.each do |book| %>
+          <tr class="bg-white hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4">
+              <p class="text-sm font-medium text-gray-900"><%= book.title %></p>
+              <% if book.subtitle.present? %>
+                <p class="text-xs text-gray-500 mt-0.5 truncate max-w-xs"><%= book.subtitle %></p>
+              <% end %>
+              <% if book.old_title.present? && @query.present? %>
+                <p class="text-xs text-gray-400 mt-0.5 italic">aka <em><%= book.old_title %></em></p>
+              <% end %>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-700">
+              <div class="flex flex-wrap gap-1">
+                <% book.credited_authors.each do |a| %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-700">
+                    <%= a.display_name %>
+                  </span>
+                <% end %>
+                <% book.translators.each do |t| %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600">
+                    <%= t.display_name %> <span class="ml-1 opacity-60">tr.</span>
+                  </span>
+                <% end %>
+                <% if book.credited_authors.none? && book.translators.none? %>
+                  <span class="text-gray-400 italic text-xs">—</span>
+                <% end %>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-700">
+              <%= [book.publication_season&.slice(0, 3), book.publication_year].compact_blank.join(" ").presence || "—" %>
+            </td>
+            <td class="px-6 py-4">
+              <% status_classes = {
+                   "draft"    => "bg-gray-100 text-gray-600",
+                   "active"   => "bg-green-100 text-green-700",
+                   "inactive" => "bg-yellow-100 text-yellow-700",
+                   "acquired" => "bg-blue-100 text-blue-700",
+                   "passed"   => "bg-red-100 text-red-600"
+                 }
+                 css = status_classes[book.status] || "bg-gray-100 text-gray-600" %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= css %>">
+                <%= book.status&.humanize || "Draft" %>
+              </span>
+              <% if book.confidential? %>
+                <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-orange-100 text-orange-600" title="Confidential">
+                  &#128274;
+                </span>
+              <% end %>
+            </td>
+            <td class="px-6 py-4">
+              <p class="text-xs text-gray-600" title="<%= book.updated_at.strftime("%B %-d, %Y at %H:%M") %>">
+                <%= time_ago_in_words(book.updated_at) %> ago
+              </p>
+              <% if book.last_updated_by.present? %>
+                <p class="text-xs text-gray-400 mt-0.5">by <%= book.last_updated_by.display_name %></p>
+              <% end %>
+            </td>
+            <td class="px-6 py-4 text-sm text-right">
+              <div class="inline-flex items-center gap-2">
+                <%= link_to "Show", book_path(book),
+                      class: "inline-flex items-center px-3 py-1.5 bg-white text-gray-700 text-xs font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+                <%= link_to "Edit", edit_book_path(book),
+                      class: "inline-flex items-center px-3 py-1.5 bg-white text-gray-700 text-xs font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+                <%= button_to "Delete", book_path(book),
+                      method: :delete,
+                      data: { turbo_confirm: "Are you sure you want to delete \"#{book.title}\"?" },
+                      class: "inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+
+        <% if @books.empty? %>
+          <tr>
+            <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500">
+              <% if @query.present? %>
+                No books matched <em>"<%= @query %>"</em>.
+                <%= link_to "Clear search", books_path, class: "text-gray-700 hover:underline font-medium" %>
+              <% else %>
+                No books found. <%= link_to "Add the first one", new_book_path, class: "hover:underline font-medium", style: "color: var(--color-primary)" %>.
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+<% end %>

@@ -1,6 +1,12 @@
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-bold text-gray-900">Book Details</h1>
-  <div class="inline-flex items-center gap-2">
+<%# ── Page header ──────────────────────────────────────────────────────────── %>
+<div class="flex items-start justify-between mb-6 gap-4">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900"><%= @book.title %></h1>
+    <% if @book.subtitle.present? %>
+      <p class="text-base text-gray-500 mt-0.5"><%= @book.subtitle %></p>
+    <% end %>
+  </div>
+  <div class="inline-flex items-center gap-2 shrink-0">
     <%= link_to "Edit", edit_book_path(@book),
           class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
     <%= link_to "All Books", books_path,
@@ -12,6 +18,363 @@
   </div>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-  <%= render @book %>
+<%# ── Tabbed detail ────────────────────────────────────────────────────────── %>
+<div data-controller="tab"
+     data-tab-persist-value="book-show-<%= @book.id %>"
+     class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+  <div class="border-b border-gray-200 px-6">
+    <nav class="-mb-px flex gap-6 overflow-x-auto" role="tablist">
+      <% [
+        ["info",     "Book Info"],
+        ["notes",    "Notes"],
+        ["coverage", "Scout Coverage"],
+        ["film",     "Film"],
+        ["report",   "Reader's Report"],
+      ].each do |key, label| %>
+        <button type="button"
+                role="tab"
+                data-tab-target="tab"
+                data-tab="<%= key %>"
+                data-action="click->tab#switch"
+                class="whitespace-nowrap border-b-2 py-4 px-1 text-sm transition-colors duration-150
+                       border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+          <%= label %>
+        </button>
+      <% end %>
+    </nav>
+  </div>
+
+  <%# ── Tab: Book Info ──────────────────────────────────────────────────────── %>
+  <div data-tab-target="panel" data-tab="info" class="px-6 py-6 space-y-6">
+
+    <%# ── Book Information ─────────────────────────────────────────────── %>
+    <div class="rounded-lg border border-gray-200 overflow-hidden mb-6">
+      <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 flex items-center gap-3">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Book Information</p>
+        <% if @book.confidential? %>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+            <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Private
+          </span>
+        <% end %>
+        <% if @book.lead_title? %>
+          <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">Lead Title</span>
+        <% end %>
+        <% if @book.tracking_material? %>
+          <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-700">Tracking Material</span>
+        <% end %>
+      </div>
+      <dl class="divide-y divide-gray-100 px-4">
+        <% if @book.old_title.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Old Title</dt>
+            <dd class="col-span-2 text-sm text-gray-700 italic"><%= @book.old_title %></dd>
+          </div>
+        <% end %>
+
+        <div class="py-3 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500">Authors</dt>
+          <dd class="col-span-2">
+            <% if @book.credited_authors.any? %>
+              <div class="flex flex-wrap gap-1.5">
+                <% @book.credited_authors.each do |a| %>
+                  <%= link_to a.display_name, author_path(a),
+                        class: "inline-flex px-3 py-1 rounded-full text-xs font-medium
+                                 bg-stone-100 text-stone-700 border border-stone-200 hover:bg-stone-200 transition-colors" %>
+                <% end %>
+              </div>
+            <% else %>
+              <span class="text-sm text-gray-400 italic">No authors assigned</span>
+            <% end %>
+          </dd>
+        </div>
+
+        <% if @book.translators.any? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Translators</dt>
+            <dd class="col-span-2">
+              <div class="flex flex-wrap gap-1.5">
+                <% @book.translators.each do |t| %>
+                  <%= link_to t.display_name, author_path(t),
+                        class: "inline-flex px-3 py-1 rounded-full text-xs font-medium
+                                 bg-stone-100 text-stone-600 border border-stone-200 hover:bg-stone-200 transition-colors" %>
+                <% end %>
+              </div>
+            </dd>
+          </div>
+        <% end %>
+
+        <% book_genres = @book.genres.ordered %>
+        <% if book_genres.any? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Genre</dt>
+            <dd class="col-span-2">
+              <div class="flex flex-wrap gap-1.5">
+                <% book_genres.each do |g| %>
+                  <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <%= g.name %>
+                  </span>
+                <% end %>
+              </div>
+            </dd>
+          </div>
+        <% end %>
+
+        <% book_subgenres = @book.sub_genres.ordered %>
+        <% if book_subgenres.any? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Subgenre</dt>
+            <dd class="col-span-2">
+              <div class="flex flex-wrap gap-1.5">
+                <% book_subgenres.each do |sg| %>
+                  <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                    <%= sg.name %>
+                  </span>
+                <% end %>
+              </div>
+            </dd>
+          </div>
+        <% end %>
+
+        <% if @book.client_types.any? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Client Type</dt>
+            <dd class="col-span-2">
+              <div class="flex flex-wrap gap-1.5">
+                <% @book.client_types.ordered.each do |ct| %>
+                  <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-800 border border-rose-200">
+                    <%= ct.name %>
+                  </span>
+                <% end %>
+              </div>
+            </dd>
+          </div>
+        <% end %>
+      </dl>
+    </div>
+
+    <%# Status %>
+    <dl class="divide-y divide-gray-100">
+      <div class="py-3 grid grid-cols-3 gap-4">
+        <dt class="text-sm font-medium text-gray-500">Status</dt>
+        <dd class="col-span-2">
+          <% css = { "draft" => "bg-gray-100 text-gray-600", "active" => "bg-green-100 text-green-700",
+                     "inactive" => "bg-yellow-100 text-yellow-700", "acquired" => "bg-blue-100 text-blue-700",
+                     "passed" => "bg-red-100 text-red-600" }[@book.status] || "bg-gray-100 text-gray-600" %>
+          <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium <%= css %>">
+            <%= @book.status&.humanize || "Draft" %>
+          </span>
+        </dd>
+      </div>
+
+      <div class="py-3 grid grid-cols-3 gap-4">
+        <dt class="text-sm font-medium text-gray-500">Synopsis</dt>
+        <dd class="col-span-2 text-sm text-gray-800 leading-relaxed trix-content">
+          <% if @book.synopsis.present? %>
+            <%= trix_sanitize @book.synopsis %>
+          <% else %>
+            <span class="text-gray-400 italic">—</span>
+          <% end %>
+        </dd>
+      </div>
+    </dl>
+
+    <%# ── Scouts + Schedule sub-panel ─────────────────────────────────────── %>
+    <div class="rounded-lg border border-gray-200 overflow-hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-200">
+        <div class="p-4">
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Scout Assignment</p>
+          <dl class="grid grid-cols-2 gap-3">
+            <div>
+              <dt class="text-xs text-gray-400 mb-0.5">Primary</dt>
+              <dd class="text-sm font-medium text-gray-800"><%= @book.primary_scout&.display_name || "—" %></dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-400 mb-0.5">Secondary</dt>
+              <dd class="text-sm font-medium text-gray-800"><%= @book.secondary_scout&.display_name || "—" %></dd>
+            </div>
+          </dl>
+        </div>
+        <div class="p-4">
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Schedule</p>
+          <dl class="grid grid-cols-2 gap-3">
+            <div>
+              <dt class="text-xs text-gray-400 mb-0.5">Delivery</dt>
+              <dd class="text-sm font-medium text-gray-800"><%= @book.delivery_date&.strftime("%b %-d, %Y") || "—" %></dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-400 mb-0.5">Follow-up</dt>
+              <dd class="text-sm font-medium text-gray-800"><%= @book.followup_date&.strftime("%b %-d, %Y") || "—" %></dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-400 mb-0.5">Season</dt>
+              <dd class="text-sm font-medium text-gray-800"><%= @book.publication_season.presence || "—" %></dd>
+            </div>
+            <div>
+              <dt class="text-xs text-gray-400 mb-0.5">Year</dt>
+              <dd class="text-sm font-medium text-gray-800"><%= @book.publication_year || "—" %></dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <dl class="divide-y divide-gray-100">
+      <div class="py-3 grid grid-cols-3 gap-4">
+        <dt class="text-sm font-medium text-gray-500">Added</dt>
+        <dd class="col-span-2 text-sm text-gray-600"><%= @book.created_at.strftime("%B %-d, %Y at %H:%M") %></dd>
+      </div>
+      <div class="py-3 grid grid-cols-3 gap-4">
+        <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
+        <dd class="col-span-2 text-sm text-gray-600">
+          <%= @book.updated_at.strftime("%B %-d, %Y at %H:%M") %>
+          <span class="text-gray-400">(<%= time_ago_in_words(@book.updated_at) %> ago)</span>
+          <% if @book.last_updated_by.present? %>
+            <span class="text-gray-500">· by <%= @book.last_updated_by.display_name %></span>
+          <% end %>
+        </dd>
+      </div>
+    </dl>
+  </div>
+
+  <%# ── Tab: Notes ──────────────────────────────────────────────────────────── %>
+  <div data-tab-target="panel" data-tab="notes" class="hidden px-6 py-6">
+    <% if @book.notes.present? %>
+      <div class="text-sm text-gray-800 leading-relaxed trix-content prose prose-sm max-w-none">
+        <%= trix_sanitize @book.notes %>
+      </div>
+    <% else %>
+      <p class="text-sm text-gray-400 italic py-8 text-center">No notes on record.</p>
+    <% end %>
+  </div>
+
+  <%# ── Tab: Scout Coverage ─────────────────────────────────────────────────── %>
+  <div data-tab-target="panel" data-tab="coverage" class="hidden px-6 py-6">
+    <div class="text-center py-12 text-sm text-gray-400">
+      <svg class="w-10 h-10 mx-auto mb-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+      Scout Coverage will appear here once reports are linked to this book.
+    </div>
+  </div>
+
+  <%# ── Tab: Film ───────────────────────────────────────────────────────────── %>
+  <div data-tab-target="panel" data-tab="film" class="hidden px-6 py-6">
+    <% ft = @book.film_tracking %>
+    <% if ft.present? && [ft.film_option, ft.category, ft.film_synopsis, ft.readers_thoughts].any?(&:present?) %>
+      <dl class="divide-y divide-gray-100">
+        <% if ft.film_option.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Film Option</dt>
+            <dd class="col-span-2 text-sm text-gray-800"><%= ft.film_option %></dd>
+          </div>
+        <% end %>
+        <% if ft.category.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Category</dt>
+            <dd class="col-span-2 text-sm text-gray-800"><%= ft.category %></dd>
+          </div>
+        <% end %>
+        <% if ft.film_synopsis.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Film Synopsis</dt>
+            <dd class="col-span-2 text-sm text-gray-800 leading-relaxed whitespace-pre-wrap"><%= ft.film_synopsis %></dd>
+          </div>
+        <% end %>
+        <% if ft.readers_thoughts.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Film Notes</dt>
+            <dd class="col-span-2 text-sm text-gray-800 leading-relaxed whitespace-pre-wrap"><%= ft.readers_thoughts %></dd>
+          </div>
+        <% end %>
+      </dl>
+    <% else %>
+      <p class="text-sm text-gray-400 italic py-8 text-center">No film tracking data on record.</p>
+    <% end %>
+  </div>
+
+  <%# ── Tab: Reader's Report ────────────────────────────────────────────────── %>
+  <div data-tab-target="panel" data-tab="report" class="hidden px-6 py-6">
+    <% if @book.readers_report.present? %>
+      <div class="text-sm text-gray-800 leading-relaxed trix-content prose prose-sm max-w-none">
+        <%= trix_sanitize @book.readers_report %>
+      </div>
+    <% else %>
+      <p class="text-sm text-gray-400 italic py-8 text-center">No reader's report on file.</p>
+    <% end %>
+  </div>
+
 </div>
+
+<%# ── Recent Updates (visibility gated in controller) ─────────────────────── %>
+<% if defined?(@recent_updates) && Current.user.hierarchy_level >= (case SiteSetting["book_history_visibility"] when "admin" then 50 when "all" then 0 else 25 end) %>
+<details class="mt-6 group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+  <summary class="flex items-center justify-between px-6 py-4 cursor-pointer select-none
+                  hover:bg-stone-50 transition-colors list-none">
+    <div class="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+      <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      Recent Updates
+      <span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+        <%= @recent_updates.size %>
+      </span>
+    </div>
+    <svg class="w-4 h-4 text-gray-400 transition-transform duration-200 group-open:rotate-180"
+         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+    </svg>
+  </summary>
+
+  <div class="border-t border-gray-100 divide-y divide-gray-100">
+    <% if @recent_updates.empty? %>
+      <p class="px-6 py-6 text-sm text-gray-400 italic text-center">No recorded changes yet.</p>
+    <% else %>
+      <% @recent_updates.each do |log| %>
+        <div class="px-6 py-4">
+          <div class="flex items-center justify-between gap-4 mb-2">
+            <div class="flex items-center gap-2">
+              <%= audit_action_badge(log.action) %>
+              <span class="text-sm text-gray-700 font-medium">
+                <%= log.user&.display_name || "Unknown user" %>
+              </span>
+            </div>
+            <time class="text-xs text-gray-400 shrink-0">
+              <%= log.created_at.strftime("%b %-d, %Y at %H:%M") %>
+            </time>
+          </div>
+
+          <% if log.action == "update" && log.metadata["changes"].present? %>
+            <dl class="space-y-1 mt-1">
+              <% log.metadata["changes"].each do |field, values| %>
+                <% next if audit_skip_field?(field) %>
+                <% before_val, after_val = values %>
+                <div class="flex flex-wrap items-baseline gap-1.5 text-xs">
+                  <dt class="font-medium text-gray-500 shrink-0"><%= field.humanize %>:</dt>
+                  <dd class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-red-400 line-through"><%= format_audit_value(field, before_val) %></span>
+                    <svg class="w-3 h-3 text-gray-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    <span class="text-green-700"><%= format_audit_value(field, after_val) %></span>
+                  </dd>
+                </div>
+              <% end %>
+            </dl>
+          <% elsif log.action == "create" %>
+            <p class="text-xs text-gray-400">Book record created.</p>
+          <% elsif log.action == "discard" %>
+            <p class="text-xs text-gray-400">Book was removed.</p>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</details>
+<% end %>

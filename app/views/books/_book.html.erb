@@ -1,33 +1,116 @@
 <dl class="divide-y divide-gray-100">
   <div class="px-6 py-4 grid grid-cols-3 gap-4">
     <dt class="text-sm font-medium text-gray-500">Title</dt>
-    <dd class="text-sm text-gray-900 col-span-2"><%= book.title %></dd>
+    <dd class="text-sm text-gray-900 col-span-2 font-semibold"><%= book.title %></dd>
   </div>
 
-  <div class="px-6 py-4 grid grid-cols-3 gap-4">
-    <dt class="text-sm font-medium text-gray-500">Author ID</dt>
-    <dd class="text-sm text-gray-900 col-span-2"><%= book.author_id %></dd>
-  </div>
+  <% if book.subtitle.present? %>
+    <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <dt class="text-sm font-medium text-gray-500">Subtitle</dt>
+      <dd class="text-sm text-gray-900 col-span-2"><%= book.subtitle %></dd>
+    </div>
+  <% end %>
 
   <div class="px-6 py-4 grid grid-cols-3 gap-4">
-    <dt class="text-sm font-medium text-gray-500">Description</dt>
-    <dd class="text-sm text-gray-900 col-span-2 whitespace-pre-line"><%= book.description.presence || "—" %></dd>
-  </div>
-
-  <div class="px-6 py-4 grid grid-cols-3 gap-4">
-    <dt class="text-sm font-medium text-gray-500">Published At</dt>
+    <dt class="text-sm font-medium text-gray-500">Authors</dt>
     <dd class="text-sm text-gray-900 col-span-2">
-      <%= book.published_at&.strftime("%B %-d, %Y") || "—" %>
+      <% if book.credited_authors.any? %>
+        <div class="flex flex-wrap gap-1.5">
+          <% book.credited_authors.each do |author| %>
+            <%= link_to author.display_name, author_path(author),
+                  class: "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                           bg-indigo-50 text-indigo-700 border border-indigo-100 hover:bg-indigo-100
+                           transition-colors" %>
+          <% end %>
+        </div>
+      <% else %>
+        <span class="text-gray-400 italic">No authors assigned</span>
+      <% end %>
+    </dd>
+  </div>
+
+  <% if book.translators.any? %>
+    <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <dt class="text-sm font-medium text-gray-500">Translators</dt>
+      <dd class="text-sm text-gray-900 col-span-2">
+        <div class="flex flex-wrap gap-1.5">
+          <% book.translators.each do |t| %>
+            <%= link_to t.display_name, author_path(t),
+                  class: "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                           bg-teal-50 text-teal-700 border border-teal-100 hover:bg-teal-100
+                           transition-colors" %>
+          <% end %>
+        </div>
+      </dd>
+    </div>
+  <% end %>
+
+  <div class="px-6 py-4 grid grid-cols-3 gap-4">
+    <dt class="text-sm font-medium text-gray-500">Synopsis</dt>
+    <dd class="text-sm text-gray-900 col-span-2 whitespace-pre-line leading-relaxed">
+      <%= book.synopsis.presence || '<span class="text-gray-400 italic">—</span>'.html_safe %>
     </dd>
   </div>
 
   <div class="px-6 py-4 grid grid-cols-3 gap-4">
-    <dt class="text-sm font-medium text-gray-500">Created At</dt>
-    <dd class="text-sm text-gray-900 col-span-2"><%= book.created_at.strftime("%B %-d, %Y at %H:%M") %></dd>
+    <dt class="text-sm font-medium text-gray-500">Publication</dt>
+    <dd class="text-sm text-gray-900 col-span-2">
+      <%= [book.publication_season, book.publication_year].compact_blank.join(" ").presence || "—" %>
+    </dd>
   </div>
 
   <div class="px-6 py-4 grid grid-cols-3 gap-4">
-    <dt class="text-sm font-medium text-gray-500">Updated At</dt>
-    <dd class="text-sm text-gray-900 col-span-2"><%= book.updated_at.strftime("%B %-d, %Y at %H:%M") %></dd>
+    <dt class="text-sm font-medium text-gray-500">Status</dt>
+    <dd class="text-sm col-span-2">
+      <% status_classes = {
+           "draft"    => "bg-gray-100 text-gray-600",
+           "active"   => "bg-green-100 text-green-700",
+           "inactive" => "bg-yellow-100 text-yellow-700",
+           "acquired" => "bg-blue-100 text-blue-700",
+           "passed"   => "bg-red-100 text-red-600"
+         }
+         css = status_classes[book.status] || "bg-gray-100 text-gray-600" %>
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= css %>">
+        <%= book.status&.humanize || "—" %>
+      </span>
+      <% if book.confidential? %>
+        <span class="ml-1.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+          Confidential
+        </span>
+      <% end %>
+    </dd>
+  </div>
+
+  <% if book.primary_scout.present? || book.secondary_scout.present? %>
+    <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <dt class="text-sm font-medium text-gray-500">Scouts</dt>
+      <dd class="text-sm text-gray-900 col-span-2 space-y-0.5">
+        <% if book.primary_scout %>
+          <div><span class="text-gray-500 text-xs">Primary:</span> <%= book.primary_scout.display_name %></div>
+        <% end %>
+        <% if book.secondary_scout %>
+          <div><span class="text-gray-500 text-xs">Secondary:</span> <%= book.secondary_scout.display_name %></div>
+        <% end %>
+      </dd>
+    </div>
+  <% end %>
+
+  <% if book.film_tracking.present? %>
+    <div class="px-6 py-4 grid grid-cols-3 gap-4">
+      <dt class="text-sm font-medium text-gray-500">Film</dt>
+      <dd class="text-sm text-gray-900 col-span-2 space-y-1">
+        <% if book.film_tracking.film_option.present? %>
+          <p><span class="font-medium">Option:</span> <%= book.film_tracking.film_option %></p>
+        <% end %>
+        <% if book.film_tracking.category.present? %>
+          <p><span class="font-medium">Category:</span> <%= book.film_tracking.category %></p>
+        <% end %>
+      </dd>
+    </div>
+  <% end %>
+
+  <div class="px-6 py-4 grid grid-cols-3 gap-4">
+    <dt class="text-sm font-medium text-gray-500">Created</dt>
+    <dd class="text-sm text-gray-900 col-span-2"><%= book.created_at.strftime("%B %-d, %Y at %H:%M") %></dd>
   </div>
 </dl>
