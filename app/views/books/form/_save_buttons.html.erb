@@ -1,0 +1,22 @@
+<%# Partial renders the save/cancel toolbar used above and below the tabbed form.
+    Locals:
+      - f: form builder
+      - book: the book object (used for the "last saved" message)
+      - show_status: boolean (optional). when truthy the last‑saved text is shown,
+        and some spacing classes adjust accordingly. %>
+
+<% show_status = local_assigns.fetch(:show_status, false) %>
+<% spacing_class = show_status ? "mb-4 flex-wrap" : "pt-4" %>
+<div class="flex items-center gap-3 <%= spacing_class %>">
+  <%= f.submit class: "inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white text-sm
+                          font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+  <%= link_to "Cancel", books_path,
+        class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm
+                font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+
+  <% if show_status && book.persisted? %>
+    <span class="text-xs text-gray-400 ml-1">
+      Last saved <%= time_ago_in_words(book.updated_at) %> ago<% if book.last_updated_by.present? %> by <strong class="font-medium text-gray-500"><%= book.last_updated_by.display_name %></strong><% end %>
+    </span>
+  <% end %>
+</div>

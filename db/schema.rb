@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_01_100001) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_01_100003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -245,8 +245,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100001) do
     t.index ["name"], name: "index_company_types_on_name", unique: true
   end
 
+  create_table "contact_companies", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "contact_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_contact_companies_on_company_id"
+    t.index ["contact_id", "company_id"], name: "index_contact_companies_on_contact_id_and_company_id", unique: true
+    t.index ["contact_id"], name: "index_contact_companies_on_contact_id"
+  end
+
   create_table "contacts", force: :cascade do |t|
-    t.bigint "company_id"
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
     t.string "email"
@@ -256,7 +265,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100001) do
     t.string "phone"
     t.string "title"
     t.datetime "updated_at", null: false
-    t.index ["company_id"], name: "index_contacts_on_company_id"
     t.index ["discarded_at"], name: "index_contacts_on_discarded_at"
     t.index ["last_name", "first_name"], name: "index_contacts_on_last_name_and_first_name"
   end
@@ -423,7 +431,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100001) do
   add_foreign_key "company_subagents", "companies"
   add_foreign_key "company_subagents", "companies", column: "subagent_company_id"
   add_foreign_key "company_subagents", "territories"
-  add_foreign_key "contacts", "companies"
+  add_foreign_key "contact_companies", "companies"
+  add_foreign_key "contact_companies", "contacts"
   add_foreign_key "conversations", "users"
   add_foreign_key "film_trackings", "books"
   add_foreign_key "messages", "conversations"

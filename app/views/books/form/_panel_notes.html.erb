@@ -1,0 +1,393 @@
+<%# Partial representing the "Notes" tab panel. %>
+<div data-tab-target="panel" data-tab="notes" class="hidden px-6 py-6 space-y-6">
+
+  <%# ── Material Notes ─────────────────────────────────────────────── %>
+  <div class="rounded-lg border border-gray-200 overflow-hidden" data-controller="nested-form">
+    <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Material Notes</p>
+      <label class="flex items-center gap-2 cursor-pointer select-none">
+        <%= f.check_box :material_to_read, class: "sr-only peer" %>
+        <div class="relative w-9 h-5 rounded-full transition-colors bg-gray-200
+                    peer-checked:bg-indigo-600
+                    after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                    after:h-4 after:w-4 after:bg-white after:rounded-full after:shadow
+                    after:transition-transform peer-checked:after:translate-x-4"></div>
+        <span class="text-xs font-medium text-gray-600">To Read</span>
+      </label>
+    </div>
+
+    <div class="divide-y divide-gray-100" data-nested-form-target="container">
+      <%= f.fields_for :reading_materials do |rm| %>
+        <div class="p-4 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end" data-nested-form-row>
+          <%= rm.hidden_field :id %>
+          <%= rm.hidden_field :_destroy, value: "0" %>
+          <div>
+            <%= rm.label :material, class: "block text-xs font-medium text-gray-600 mb-1" %>
+            <%= rm.text_field :material,
+                  class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+          <div>
+            <%= rm.label :reader, class: "block text-xs font-medium text-gray-600 mb-1" %>
+            <%= rm.text_field :reader,
+                  class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+          <div>
+            <%= rm.label :number_of_pages, "Pages", class: "block text-xs font-medium text-gray-600 mb-1" %>
+            <%= rm.number_field :number_of_pages,
+                  class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+          <div class="flex gap-2 items-end">
+            <div class="flex-1">
+              <%= rm.label :date, class: "block text-xs font-medium text-gray-600 mb-1" %>
+              <%= rm.date_field :date,
+                    class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            </div>
+            <button type="button" data-action="nested-form#remove"
+                    class="shrink-0 text-xs text-red-400 hover:text-red-600 pb-2.5 transition-colors">Remove</button>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <template data-nested-form-target="template">
+      <%= f.fields_for :reading_materials, ReadingMaterial.new, child_index: "__INDEX__" do |rm| %>
+        <div class="p-4 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end" data-nested-form-row>
+          <%= rm.hidden_field :id %>
+          <%= rm.hidden_field :_destroy, value: "0" %>
+          <div>
+            <%= rm.label :material, class: "block text-xs font-medium text-gray-600 mb-1" %>
+            <%= rm.text_field :material,
+                  class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+          <div>
+            <%= rm.label :reader, class: "block text-xs font-medium text-gray-600 mb-1" %>
+            <%= rm.text_field :reader,
+                  class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+          <div>
+            <%= rm.label :number_of_pages, "Pages", class: "block text-xs font-medium text-gray-600 mb-1" %>
+            <%= rm.number_field :number_of_pages,
+                  class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+          </div>
+          <div class="flex gap-2 items-end">
+            <div class="flex-1">
+              <%= rm.label :date, class: "block text-xs font-medium text-gray-600 mb-1" %>
+              <%= rm.date_field :date,
+                    class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            </div>
+            <button type="button" data-action="nested-form#remove"
+                    class="shrink-0 text-xs text-red-400 hover:text-red-600 pb-2.5 transition-colors">Remove</button>
+          </div>
+        </div>
+      <% end %>
+    </template>
+
+    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100">
+      <button type="button" data-action="nested-form#add"
+              class="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+        + Add Material Note
+      </button>
+    </div>
+  </div>
+
+  <%# ── Client Activity Notes ──────────────────────────────────────── %>
+  <div class="rounded-lg border border-gray-200" data-controller="nested-form">
+    <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 rounded-t-lg">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Client Activity Notes</p>
+    </div>
+
+    <div class="divide-y divide-gray-100" data-nested-form-target="container">
+      <%= f.fields_for :client_activities do |ca| %>
+        <div class="p-4 space-y-3" data-nested-form-row>
+          <%= ca.hidden_field :id %>
+          <%= ca.hidden_field :_destroy, value: "0" %>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+            <div>
+              <%= ca.label :date, class: "block text-xs font-medium text-gray-600 mb-1" %>
+              <%= ca.date_field :date,
+                    class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            </div>
+            <div>
+              <%= ca.label :activity_type, "Type", class: "block text-xs font-medium text-gray-600 mb-1" %>
+              <%= ca.select :activity_type,
+                    [["— type —", ""], "ACQ", "BOI", "OFF", "TD"],
+                    { selected: ca.object.activity_type },
+                    class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" %>
+            </div>
+            <div class="relative"
+                 data-controller="company-combobox"
+                 data-company-combobox-url-value="<%= search_companies_path(format: :json) %>">
+              <p class="block text-xs font-medium text-gray-600 mb-1">Company</p>
+              <input type="text"
+                     data-company-combobox-target="input"
+                     placeholder="Search companies…"
+                     value="<%= ca.object.company&.name %>"
+                     autocomplete="off"
+                     class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                             focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                     data-action="input->company-combobox#search keydown->company-combobox#onKeydown" />
+              <input type="hidden"
+                     name="<%= ca.object_name %>[company_id]"
+                     value="<%= ca.object.company_id %>"
+                     data-company-combobox-target="hiddenField" />
+              <div data-company-combobox-target="dropdown"
+                   class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                          border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+            </div>
+            <div class="flex gap-2 items-end">
+              <div class="flex-1 relative"
+                   data-controller="contact-combobox"
+                   data-contact-combobox-url-value="<%= search_contacts_path(format: :json) %>">
+                <p class="block text-xs font-medium text-gray-600 mb-1">Contact</p>
+                <input type="text"
+                       data-contact-combobox-target="input"
+                       placeholder="Search contacts…"
+                       value="<%= ca.object.contact&.display_name %>"
+                       autocomplete="off"
+                       class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                       data-action="input->contact-combobox#search keydown->contact-combobox#onKeydown" />
+                <input type="hidden"
+                       name="<%= ca.object_name %>[contact_id]"
+                       value="<%= ca.object.contact_id %>"
+                       data-contact-combobox-target="hiddenField" />
+                <div data-contact-combobox-target="dropdown"
+                     class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                            border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+              </div>
+              <button type="button" data-action="nested-form#remove"
+                      class="shrink-0 text-xs text-red-400 hover:text-red-600 pb-2.5 transition-colors">Remove</button>
+            </div>
+          </div>
+          <div>
+            <%= ca.label :content, class: "block text-xs font-medium text-gray-600 mb-1" %>
+            <div data-controller="rich-text"
+                 data-rich-text-name-value="<%= ca.object_name %>[content]"
+                 data-rich-text-value-value="<%= ca.object.content.to_s %>"></div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <template data-nested-form-target="template">
+      <%= f.fields_for :client_activities, ClientActivity.new, child_index: "__INDEX__" do |ca| %>
+        <div class="p-4 space-y-3" data-nested-form-row>
+          <%= ca.hidden_field :id %>
+          <%= ca.hidden_field :_destroy, value: "0" %>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+            <div>
+              <%= ca.label :date, class: "block text-xs font-medium text-gray-600 mb-1" %>
+              <%= ca.date_field :date,
+                    class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            </div>
+            <div>
+              <%= ca.label :activity_type, "Type", class: "block text-xs font-medium text-gray-600 mb-1" %>
+              <%= ca.select :activity_type,
+                    [["— type —", ""], "ACQ", "BOI", "OFF", "TD"],
+                    {},
+                    class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" %>
+            </div>
+            <div class="relative"
+                 data-controller="company-combobox"
+                 data-company-combobox-url-value="<%= search_companies_path(format: :json) %>">
+              <p class="block text-xs font-medium text-gray-600 mb-1">Company</p>
+              <input type="text"
+                     data-company-combobox-target="input"
+                     placeholder="Search companies…"
+                     value=""
+                     autocomplete="off"
+                     class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                             focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                     data-action="input->company-combobox#search keydown->company-combobox#onKeydown" />
+              <input type="hidden"
+                     name="<%= ca.object_name %>[company_id]"
+                     value=""
+                     data-company-combobox-target="hiddenField" />
+              <div data-company-combobox-target="dropdown"
+                   class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                          border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+            </div>
+            <div class="flex gap-2 items-end">
+              <div class="flex-1 relative"
+                   data-controller="contact-combobox"
+                   data-contact-combobox-url-value="<%= search_contacts_path(format: :json) %>">
+                <p class="block text-xs font-medium text-gray-600 mb-1">Contact</p>
+                <input type="text"
+                       data-contact-combobox-target="input"
+                       placeholder="Search contacts…"
+                       value=""
+                       autocomplete="off"
+                       class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                       data-action="input->contact-combobox#search keydown->contact-combobox#onKeydown" />
+                <input type="hidden"
+                       name="<%= ca.object_name %>[contact_id]"
+                       value=""
+                       data-contact-combobox-target="hiddenField" />
+                <div data-contact-combobox-target="dropdown"
+                     class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                            border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+              </div>
+              <button type="button" data-action="nested-form#remove"
+                      class="shrink-0 text-xs text-red-400 hover:text-red-600 pb-2.5 transition-colors">Remove</button>
+            </div>
+          </div>
+          <div>
+            <%= ca.label :content, class: "block text-xs font-medium text-gray-600 mb-1" %>
+            <div data-controller="rich-text"
+                 data-rich-text-name-value="<%= ca.object_name %>[content]"
+                 data-rich-text-value-value=""></div>
+          </div>
+        </div>
+      <% end %>
+    </template>
+
+    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100">
+      <button type="button" data-action="nested-form#add"
+              class="text-xs font-medium text-indigo-600 hover=text-indigo-800 transition-colors">
+        + Add Client Activity
+      </button>
+    </div>
+  </div>
+
+  <%# ── Memo History ────────────────────────────────────────────────── %>
+  <div class="rounded-lg border border-gray-200 overflow-hidden" data-controller="nested-form">
+    <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Memo History</p>
+    </div>
+
+    <div class="divide-y divide-gray-100" data-nested-form-target="container">
+      <%= f.fields_for :book_memos do |bm| %>
+        <div class="p-4 space-y-3" data-nested-form-row>
+          <%= bm.hidden_field :id %>
+          <%= bm.hidden_field :_destroy, value: "0" %>
+          <div class="flex gap-3 items-end justify-between">
+            <div>
+              <%= bm.label :date, class: "block text-xs font-medium text-gray-600 mb-1" %>
+              <%= bm.date_field :date,
+                    class: "block rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            </div>
+            <button type="button" data-action="nested-form#remove"
+                    class="text-xs text-red-400 hover:text-red-600 pb-2.5 transition-colors">Remove</button>
+          </div>
+          <div>
+            <%= bm.label :note, class: "block text-xs font-medium text-gray-600 mb-1" %>
+            <div data-controller="rich-text"
+                 data-rich-text-name-value="<%= bm.object_name %>[note]"
+                 data-rich-text-value-value="<%= bm.object.note.to_s %>"></div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <template data-nested-form-target="template">
+      <%= f.fields_for :book_memos, BookMemo.new, child_index: "__INDEX__" do |bm| %>
+        <div class="p-4 space-y-3" data-nested-form-row>
+          <%= bm.hidden_field :id %>
+          <%= bm.hidden_field :_destroy, value: "0" %>
+          <div class="flex gap-3 items-end justify-between">
+            <div>
+              <%= bm.label :date, class: "block text-xs font-medium text-gray-600 mb-1" %>
+              <%= bm.date_field :date,
+                    class: "block rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            </div>
+            <button type="button" data-action="nested-form#remove"
+                    class="text-xs text-red-400 hover:text-red-600 pb-2.5 transition-colors">Remove</button>
+          </div>
+          <div>
+            <%= bm.label :note, class: "block text-xs font-medium text-gray-600 mb-1" %>
+            <div data-controller="rich-text"
+                 data-rich-text-name-value="<%= bm.object_name %>[note]"
+                 data-rich-text-value-value=""></div>
+          </div>
+        </div>
+      <% end %>
+    </template>
+
+    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100">
+      <button type="button" data-action="nested-form#add"
+              class="text-xs font-medium text-indigo-600 hover=text-indigo-800 transition-colors">
+        + Add Memo
+      </button>
+    </div>
+  </div>
+
+  <%# ── Archive Notes ───────────────────────────────────────────────── %>
+  <div class="rounded-lg border border-gray-200 overflow-hidden" data-controller="nested-form">
+    <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Archive Notes</p>
+    </div>
+
+    <div class="divide-y divide-gray-100" data-nested-form-target="container">
+      <%= f.fields_for :archive_notes do |an| %>
+        <div class="p-4 space-y-3" data-nested-form-row>
+          <%= an.hidden_field :id %>
+          <%= an.hidden_field :_destroy, value: "0" %>
+          <div class="flex gap-3 items-end justify-between">
+            <div>
+              <%= an.label :date, class: "block text-xs font-medium text-gray-600 mb-1" %>
+              <%= an.date_field :date,
+                    class: "block rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            </div>
+            <button type="button" data-action="nested-form#remove"
+                    class="text-xs text-red-400 hover=text-red-600 pb-2.5 transition-colors">Remove</button>
+          </div>
+          <div>
+            <%= an.label :note, class: "block text-xs font-medium text-gray-600 mb-1" %>
+            <div data-controller="rich-text"
+                 data-rich-text-name-value="<%= an.object_name %>[note]"
+                 data-rich-text-value-value="<%= an.object.note.to_s %>"></div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <template data-nested-form-target="template">
+      <%= f.fields_for :archive_notes, ArchiveNote.new, child_index: "__INDEX__" do |an| %>
+        <div class="p-4 space-y-3" data-nested-form-row>
+          <%= an.hidden_field :id %>
+          <%= an.hidden_field :_destroy, value: "0" %>
+          <div class="flex gap-3 items-end justify-between">
+            <div>
+              <%= an.label :date, class: "block text-xs font-medium text-gray-600 mb-1" %>
+              <%= an.date_field :date,
+                    class: "block rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+            </div>
+            <button type="button" data-action="nested-form#remove"
+                    class="text-xs text-red-400 hover=text-red-600 pb-2.5 transition-colors">Remove</button>
+          </div>
+          <div>
+            <%= an.label :note, class: "block text-xs font-medium text-gray-600 mb-1" %>
+            <div data-controller="rich-text"
+                 data-rich-text-name-value="<%= an.object_name %>[note]"
+                 data-rich-text-value-value=""></div>
+          </div>
+        </div>
+      <% end %>
+    </template>
+
+    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100">
+      <button type="button" data-action="nested-form#add"
+              class="text-xs font-medium text-indigo-600 hover=text-indigo-800 transition-colors">
+        + Add Archive Note
+      </button>
+    </div>
+  </div>
+
+</div>

@@ -47,8 +47,24 @@ class Book < ApplicationRecord
   has_many :book_companies, dependent: :destroy
   has_many :companies,      through: :book_companies
 
+  # Role-scoped company shortcuts
+  has_one  :book_publisher_record,   -> { publisher },   class_name: "BookCompany"
+  has_one  :publisher_company,       through: :book_publisher_record, source: :company
+  has_one  :book_editor_record,      -> { editor },      class_name: "BookCompany"
+  has_one  :editor_company,          through: :book_editor_record,   source: :company
+  has_many :book_agency_records,     -> { agency },      class_name: "BookCompany"
+  has_many :agency_companies,        through: :book_agency_records,  source: :company
+  has_many :book_film_agency_records, -> { film_agency }, class_name: "BookCompany"
+  has_many :film_agency_companies,   through: :book_film_agency_records, source: :company
+
   has_many :book_contacts, dependent: :destroy
   has_many :contacts,      through: :book_contacts
+
+  # Role-scoped contact shortcuts
+  has_many :book_agent_records,       -> { agent },       class_name: "BookContact"
+  has_many :agent_contacts,           through: :book_agent_records,      source: :contact
+  has_many :book_film_agent_records,  -> { film_agent },  class_name: "BookContact"
+  has_many :film_agent_contacts,      through: :book_film_agent_records, source: :contact
 
   has_many :reading_materials, dependent: :destroy
   has_many :client_activities, dependent: :destroy

@@ -3,7 +3,12 @@ class AuthorsController < ApplicationController
 
   # GET /authors
   def index
-    @authors = Author.kept.order(:last_name, :first_name)
+    @query = params[:q].to_s.strip
+    @authors = if @query.present?
+      Author.kept.search_by_name(@query)
+    else
+      Author.kept.order(:last_name, :first_name)
+    end
   end
 
   # GET /authors/search.json?q=García

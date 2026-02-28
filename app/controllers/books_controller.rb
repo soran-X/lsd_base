@@ -69,6 +69,7 @@ class BooksController < ApplicationController
     respond_to do |format|
       if @book.save
         assign_book_authors(@book)
+        assign_book_companies_and_contacts(@book)
         AuditLog.record(user: Current.user, action: "create", resource: @book,
                         metadata: { title: @book.title }, request: request)
         format.html { redirect_to @book, notice: "Book was successfully created." }
@@ -91,6 +92,7 @@ class BooksController < ApplicationController
     respond_to do |format|
       if @book.update(book_params)
         assign_book_authors(@book)
+        assign_book_companies_and_contacts(@book)
 
         # ── Scalar field changes ────────────────────────────────────────────
         # Exclude rich-text fields from previous_changes — Trix re-normalises
@@ -227,5 +229,54 @@ class BooksController < ApplicationController
     (ids - existing_ids).each do |author_id|
       book.book_authors.create!(author_id: author_id, role: role)
     end
+  end
+
+  # ── Company & Contact assignment ──────────────────────────────────────────
+
+  def assign_book_companies_and_contacts(book)
+    # Single-select companies
+    assign_single_book_company(book, :publisher, params.dig(:book, :publisher_company_id))
+    assign_single_book_company(book, :editor,    params.dig(:book, :editor_company_id))
+
+    # Multi-select companies
+    assign_multi_book_company(book, :agency,
+      Array(params.dig(:book, :agency_company_ids)).compact_blank.map(&:to_i))
+    assign_multi_book_company(book, :film_agency,
+      Array(params.dig(:book, :film_agency_company_ids)).compact_blank.map(&:to_i))
+
+    # Multi-select contacts
+    assign_multi_book_contact(book, :agent,
+      Array(params.dig(:book, :agent_contact_ids)).compact_blank.map(&:to_i))
+    assign_multi_book_contact(book, :film_agent,
+      Array(params.dig(:book, :film_agent_contact_ids)).compact_blank.map(&:to_i))
+  end
+
+  def assign_single_book_company(book, role, company_id)
+    raw = company_id.to_s.strip
+    existing = book.book_companies.find_by(role: BookCompany.roles[role])
+    if raw.blank?
+      existing&.destroy
+    else
+      id = raw.to_i
+      if existing
+        existing.update!(company_id: id) unless existing.company_id == id
+      else
+        book.book_companies.create!(company_id: id, role: role)
+      end
+    end
+  end
+
+  def assign_multi_book_company(book, role, ids)
+    existing = book.book_companies.where(role: BookCompany.roles[role])
+    existing.where.not(company_id: ids).destroy_all
+    existing_ids = existing.pluck(:company_id)
+    (ids - existing_ids).each { |cid| book.book_companies.create!(company_id: cid, role: role) }
+  end
+
+  def assign_multi_book_contact(book, role, ids)
+    existing = book.book_contacts.where(role: BookContact.roles[role])
+    existing.where.not(contact_id: ids).destroy_all
+    existing_ids = existing.pluck(:contact_id)
+    (ids - existing_ids).each { |cid| book.book_contacts.create!(contact_id: cid, role: role) }
   end
 end

@@ -49,19 +49,46 @@ module ApplicationHelper
     sanitize(html, tags: TRIX_ALLOWED_TAGS, attributes: TRIX_ALLOWED_ATTRS)
   end
 
+  # fields whose rich-text contents we don't display; any attribute ending in
+  # `_html`/`_plain` probably qualifies when coming from a Trix editor.
   AUDIT_RICH_TEXT_FIELDS = %w[synopsis notes readers_report].freeze
-  AUDIT_BOOLEAN_FIELDS   = %w[confidential lead_title tracking_material].freeze
-  AUDIT_SKIP_FIELDS      = %w[updated_at synopsis_plain last_updated_by_id created_at discarded_at].freeze
+
+  # these boolean columns should render "Yes/No" instead of raw true/false;
+  # we automatically include every boolean in the Book model so that newly
+  # added flags are handled without editing this file.
+  def audit_boolean_fields
+    @audit_boolean_fields ||= begin
+      base = Book.columns.select { |c| c.type == :boolean }.map(&:name)
+      # keep a stable array for formatting; remove `discarded` since it's used
+      # by paranoia and not something the user cares about seeing in the log
+      base - %w[discarded]
+    end
+  end
+
+  # when the model definition changes, we also want to skip typical metadata
+  # attributes automatically rather than editing a constant each time.
+  def audit_skip_fields
+    @audit_skip_fields ||= begin
+      # always ignore housekeeping columns and foreign keys (except the
+      # last_updated_by we show separately via its name)
+      Book.column_names.select { |n|
+        n =~ /_at$/ ||
+        n =~ /_id$/ && n != "last_updated_by_id"
+      } + %w[synopsis_plain]
+    end
+  end
+
+  # plain text values that should just be shown as-is instead of humanizing.
   AUDIT_PLAIN_FIELDS     = %w[authors translators].freeze
 
   def audit_skip_field?(field)
-    AUDIT_SKIP_FIELDS.include?(field)
+    audit_skip_fields.include?(field)
   end
 
   def format_audit_value(field, value)
     return "—" if value.nil?
-    return "[content updated]" if AUDIT_RICH_TEXT_FIELDS.include?(field)
-    return(value ? "Yes" : "No") if AUDIT_BOOLEAN_FIELDS.include?(field)
+    return "[content updated]" if AUDIT_RICH_TEXT_FIELDS.include?(field) || field.end_with?("_html", "_plain")
+    return(value ? "Yes" : "No") if audit_boolean_fields.include?(field)
     return value.to_s                if AUDIT_PLAIN_FIELDS.include?(field)
     value.to_s.humanize.truncate(80)
   end

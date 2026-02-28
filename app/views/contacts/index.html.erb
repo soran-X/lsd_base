@@ -45,9 +45,8 @@
               <%= contact.title.presence || "—" %>
             </td>
             <td class="px-5 py-3 text-gray-500 hidden md:table-cell">
-              <% if contact.company.present? %>
-                <%= link_to contact.company.name, company_path(contact.company),
-                      class: "hover:text-indigo-600 transition-colors" %>
+              <% if contact.companies.any? %>
+                <%= contact.companies.map { |c| link_to(c.name, company_path(c), class: "hover:text-indigo-600 transition-colors") }.join(", ").html_safe %>
               <% else %>
                 —
               <% end %>

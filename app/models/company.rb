@@ -12,7 +12,8 @@ class Company < ApplicationRecord
   belongs_to :company_type, optional: true
   has_many :book_companies, dependent: :destroy
   has_many :books, through: :book_companies
-  has_many :contacts, dependent: :nullify
+  has_many :contact_companies, dependent: :destroy
+  has_many :contacts, through: :contact_companies
   has_many :company_subagents, dependent: :destroy
   has_many :subagent_companies, through: :company_subagents, source: :subagent_company
 

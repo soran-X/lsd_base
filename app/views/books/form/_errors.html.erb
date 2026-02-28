@@ -1,0 +1,13 @@
+<%# Partial used by books/_form.html.erb to render validation errors.
+    Expects local variable `book` for the form object. %>
+
+<% if book.errors.any? %>
+  <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-sm text-red-700">
+    <p class="font-semibold mb-1"><%= pluralize(book.errors.count, "error") %> prevented this book from being saved:</p>
+    <ul class="list-disc list-inside space-y-0.5">
+      <% book.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

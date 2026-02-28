@@ -70,7 +70,9 @@ Rails.application.routes.draw do
   resources :companies do
     collection { get :search, defaults: { format: :json } }
   end
-  resources :contacts
+  resources :contacts do
+    collection { get :search, defaults: { format: :json } }
+  end
   resources :company_types
   resources :territories
 

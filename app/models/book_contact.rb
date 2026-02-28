@@ -16,3 +16,4 @@ class BookContact < ApplicationRecord
   validates :role, presence: true
   validates :contact_id, uniqueness: { scope: [:book_id, :role] }
 end
+ 

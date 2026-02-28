@@ -2,17 +2,20 @@ class CompaniesController < ApplicationController
   before_action :set_company, only: %i[show edit update destroy]
 
   def index
-    @query = params[:q].to_s.strip
-    @companies = if @query.present?
-      Company.kept.search_by_name(@query).includes(:company_type)
-    else
-      Company.kept.includes(:company_type).ordered
-    end
+    @query       = params[:q].to_s.strip
+    @type_filter = params[:type].to_s.strip
+    @company_types = CompanyType.order(:name).pluck(:name)
+
+    scope = Company.kept.includes(:company_type)
+    scope = scope.search_by_name(@query) if @query.present?
+    scope = scope.joins(:company_type).where(company_types: { name: @type_filter }) if @type_filter.present?
+    scope = scope.ordered unless @query.present?
+    @companies = scope
   end
 
   def show
     @company = Company.kept
-                      .includes(:company_type, contacts: [],
+                      .includes(:company_type, :contacts,
                                 books: :credited_authors,
                                 company_subagents: [:territory, :subagent_company])
                       .find(params.expect(:id))
@@ -20,8 +23,10 @@ class CompaniesController < ApplicationController
 
   def search
     q         = params[:q].to_s.strip
+    type_name = params[:type].to_s.strip
     companies = Company.kept.order(:name)
     companies = companies.search_by_name(q) if q.present?
+    companies = companies.joins(:company_type).where(company_types: { name: type_name }) if type_name.present?
     render json: companies.limit(15).map { |c| { id: c.id, label: c.name } }
   end
 

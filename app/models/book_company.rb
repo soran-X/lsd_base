@@ -5,7 +5,8 @@ class BookCompany < ApplicationRecord
     agency:      1,
     film_agency: 2,
     distributor: 3,
-    other:       4
+    other:       4,
+    editor:      5
   }, validate: true
 
   # ── Associations ──────────────────────────────────────────────────────────

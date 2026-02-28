@@ -1,7 +1,20 @@
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-bold text-gray-900">Authors</h1>
-  <%= link_to "New Author", new_author_path,
-        class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors" %>
+<div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Authors</h1>
+    <p class="text-sm text-gray-500 mt-0.5"><%= @authors.size %> <%= "author".pluralize(@authors.size) %></p>
+  </div>
+  <div class="flex items-center gap-3">
+    <%= form_with url: authors_path, method: :get, class: "flex items-center gap-2" do |f| %>
+      <%= f.text_field :q, value: @query, placeholder: "Search authors…",
+            class: "block rounded-lg border border-gray-300 px-3 py-2 text-sm w-56
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+      <% if @query.present? %>
+        <%= link_to "Clear", authors_path, class: "text-xs text-gray-400 hover:text-gray-600" %>
+      <% end %>
+    <% end %>
+    <%= link_to "New Author", new_author_path,
+          class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors" %>
+  </div>
 </div>
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -42,7 +55,11 @@
       <% if @authors.empty? %>
         <tr class="bg-white">
           <td colspan="4" class="px-6 py-10 text-center text-sm text-gray-500">
-            No authors found. <%= link_to "Add the first one", new_author_path, class: "text-indigo-600 hover:underline font-medium" %>.
+            <% if @query.present? %>
+              No authors match "<%= @query %>". <%= link_to "Clear search", authors_path, class: "text-indigo-600 hover:underline font-medium" %>.
+            <% else %>
+              No authors found. <%= link_to "Add the first one", new_author_path, class: "text-indigo-600 hover:underline font-medium" %>.
+            <% end %>
           </td>
         </tr>
       <% end %>

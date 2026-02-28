@@ -4,25 +4,33 @@ class ContactsController < ApplicationController
   def index
     @query = params[:q].to_s.strip
     @contacts = if @query.present?
-      Contact.kept.search_by_name(@query).includes(:company)
+      Contact.kept.search_by_name(@query).includes(:companies)
     else
-      Contact.kept.includes(:company).ordered
+      Contact.kept.includes(:companies).ordered
     end
   end
 
+  # GET /contacts/search.json?q=Smith
+  def search
+    q        = params[:q].to_s.strip
+    contacts = Contact.kept.order(:last_name, :first_name)
+    contacts = contacts.search_by_name(q) if q.present?
+    render json: contacts.limit(15).map { |c| { id: c.id, label: c.display_name } }
+  end
+
   def show
-    @contact = Contact.kept.includes(:company, books: :credited_authors)
+    @contact = Contact.kept.includes(:companies, books: :credited_authors)
                       .find(params.expect(:id))
   end
 
   def new
     @contact = Contact.new
-    @contact.company_id = params[:company_id] if params[:company_id]
   end
 
   def create
     @contact = Contact.new(contact_params)
     if @contact.save
+      assign_contact_companies(@contact)
       redirect_to @contact, notice: "Contact \"#{@contact.display_name}\" created."
     else
       render :new, status: :unprocessable_entity
@@ -33,6 +41,7 @@ class ContactsController < ApplicationController
 
   def update
     if @contact.update(contact_params)
+      assign_contact_companies(@contact)
       redirect_to @contact, notice: "Contact updated."
     else
       render :edit, status: :unprocessable_entity
@@ -53,7 +62,15 @@ class ContactsController < ApplicationController
 
   def contact_params
     params.expect(contact: [
-      :first_name, :last_name, :title, :email, :phone, :company_id, :notes
+      :first_name, :last_name, :title, :email, :phone, :notes
     ])
+  end
+
+  def assign_contact_companies(contact)
+    ids = Array(params.dig(:contact, :company_ids)).compact_blank.map(&:to_i)
+    existing = contact.contact_companies
+    existing.where.not(company_id: ids).destroy_all
+    existing_ids = existing.reload.pluck(:company_id)
+    (ids - existing_ids).each { |cid| contact.contact_companies.create!(company_id: cid) }
   end
 end

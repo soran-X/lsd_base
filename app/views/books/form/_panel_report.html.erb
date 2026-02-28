@@ -1,0 +1,7 @@
+<%# Reader's report tab panel. %>
+<div data-tab-target="panel" data-tab="report" class="hidden px-6 py-6">
+  <p class="text-sm text-gray-500 mb-3">Formal written evaluation of this title.</p>
+  <div data-controller="rich-text"
+       data-rich-text-name-value="book[readers_report]"
+       data-rich-text-value-value="<%= book.readers_report.to_s %>"></div>
+</div>
