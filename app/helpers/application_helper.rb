@@ -52,6 +52,7 @@ module ApplicationHelper
   AUDIT_RICH_TEXT_FIELDS = %w[synopsis notes readers_report].freeze
   AUDIT_BOOLEAN_FIELDS   = %w[confidential lead_title tracking_material].freeze
   AUDIT_SKIP_FIELDS      = %w[updated_at synopsis_plain last_updated_by_id created_at discarded_at].freeze
+  AUDIT_PLAIN_FIELDS     = %w[authors translators].freeze
 
   def audit_skip_field?(field)
     AUDIT_SKIP_FIELDS.include?(field)
@@ -61,6 +62,7 @@ module ApplicationHelper
     return "—" if value.nil?
     return "[content updated]" if AUDIT_RICH_TEXT_FIELDS.include?(field)
     return(value ? "Yes" : "No") if AUDIT_BOOLEAN_FIELDS.include?(field)
+    return value.to_s                if AUDIT_PLAIN_FIELDS.include?(field)
     value.to_s.humanize.truncate(80)
   end
 

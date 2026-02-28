@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_28_000006) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_01_100001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -41,6 +41,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_000006) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "archive_notes", force: :cascade do |t|
+    t.bigint "book_id", null: false
+    t.datetime "created_at", null: false
+    t.date "date"
+    t.text "note"
+    t.datetime "updated_at", null: false
+    t.index ["book_id"], name: "index_archive_notes_on_book_id"
   end
 
   create_table "audit_logs", force: :cascade do |t|
@@ -122,6 +131,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_000006) do
     t.index ["genre_id"], name: "index_book_genres_on_genre_id"
   end
 
+  create_table "book_memos", force: :cascade do |t|
+    t.bigint "book_id", null: false
+    t.datetime "created_at", null: false
+    t.date "date"
+    t.text "note"
+    t.datetime "updated_at", null: false
+    t.index ["book_id"], name: "index_book_memos_on_book_id"
+  end
+
   create_table "book_sub_genres", force: :cascade do |t|
     t.bigint "book_id", null: false
     t.datetime "created_at", null: false
@@ -140,6 +158,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_000006) do
     t.date "followup_date"
     t.bigint "last_updated_by_id"
     t.boolean "lead_title", default: false, null: false
+    t.boolean "material_to_read", default: false, null: false
     t.text "notes"
     t.string "old_title"
     t.bigint "primary_scout_id"
@@ -166,6 +185,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_000006) do
     t.index ["updated_at"], name: "index_books_on_updated_at"
   end
 
+  create_table "client_activities", force: :cascade do |t|
+    t.string "activity_type"
+    t.bigint "book_id", null: false
+    t.bigint "company_id"
+    t.bigint "contact_id"
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.date "date"
+    t.datetime "updated_at", null: false
+    t.index ["book_id"], name: "index_client_activities_on_book_id"
+  end
+
   create_table "client_types", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -174,22 +205,59 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_000006) do
   end
 
   create_table "companies", force: :cascade do |t|
-    t.string "company_type"
+    t.string "address_line_1"
+    t.string "address_line_2"
+    t.string "city"
+    t.bigint "company_type_id"
     t.string "country"
     t.datetime "created_at", null: false
+    t.datetime "discarded_at"
+    t.string "fax"
     t.string "name", null: false
+    t.boolean "nest_subagents", default: false, null: false
+    t.text "notes"
+    t.string "phone"
+    t.string "postal_code"
+    t.string "state"
     t.datetime "updated_at", null: false
+    t.boolean "viewable_by_clients", default: true, null: false
     t.string "website"
+    t.index ["company_type_id"], name: "index_companies_on_company_type_id"
+    t.index ["discarded_at"], name: "index_companies_on_discarded_at"
     t.index ["name"], name: "index_companies_on_name"
   end
 
-  create_table "contacts", force: :cascade do |t|
+  create_table "company_subagents", force: :cascade do |t|
+    t.bigint "company_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "subagent_company_id", null: false
+    t.bigint "territory_id"
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_company_subagents_on_company_id"
+    t.index ["subagent_company_id"], name: "index_company_subagents_on_subagent_company_id"
+    t.index ["territory_id"], name: "index_company_subagents_on_territory_id"
+  end
+
+  create_table "company_types", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_company_types_on_name", unique: true
+  end
+
+  create_table "contacts", force: :cascade do |t|
+    t.bigint "company_id"
+    t.datetime "created_at", null: false
+    t.datetime "discarded_at"
     t.string "email"
     t.string "first_name", null: false
     t.string "last_name", null: false
+    t.text "notes"
     t.string "phone"
+    t.string "title"
     t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_contacts_on_company_id"
+    t.index ["discarded_at"], name: "index_contacts_on_discarded_at"
     t.index ["last_name", "first_name"], name: "index_contacts_on_last_name_and_first_name"
   end
 
@@ -236,6 +304,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_000006) do
     t.string "resource", null: false
     t.datetime "updated_at", null: false
     t.index ["resource", "action"], name: "index_permissions_on_resource_and_action", unique: true
+  end
+
+  create_table "reading_materials", force: :cascade do |t|
+    t.bigint "book_id", null: false
+    t.datetime "created_at", null: false
+    t.date "date"
+    t.string "material"
+    t.integer "number_of_pages"
+    t.string "reader"
+    t.datetime "updated_at", null: false
+    t.index ["book_id"], name: "index_reading_materials_on_book_id"
   end
 
   create_table "recovery_codes", force: :cascade do |t|
@@ -289,6 +368,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_000006) do
     t.index ["name"], name: "index_sub_genres_on_name", unique: true
   end
 
+  create_table "territories", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_territories_on_name", unique: true
+  end
+
   create_table "users", force: :cascade do |t|
     t.boolean "approved", default: false, null: false
     t.datetime "created_at", null: false
@@ -314,6 +400,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_000006) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "archive_notes", "books"
   add_foreign_key "audit_logs", "users"
   add_foreign_key "book_authors", "authors"
   add_foreign_key "book_authors", "books"
@@ -325,15 +412,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_28_000006) do
   add_foreign_key "book_contacts", "contacts"
   add_foreign_key "book_genres", "books"
   add_foreign_key "book_genres", "genres"
+  add_foreign_key "book_memos", "books"
   add_foreign_key "book_sub_genres", "books"
   add_foreign_key "book_sub_genres", "sub_genres"
   add_foreign_key "books", "users", column: "last_updated_by_id"
   add_foreign_key "books", "users", column: "primary_scout_id"
   add_foreign_key "books", "users", column: "secondary_scout_id"
+  add_foreign_key "client_activities", "books"
+  add_foreign_key "companies", "company_types"
+  add_foreign_key "company_subagents", "companies"
+  add_foreign_key "company_subagents", "companies", column: "subagent_company_id"
+  add_foreign_key "company_subagents", "territories"
+  add_foreign_key "contacts", "companies"
   add_foreign_key "conversations", "users"
   add_foreign_key "film_trackings", "books"
   add_foreign_key "messages", "conversations"
   add_foreign_key "messages", "users"
+  add_foreign_key "reading_materials", "books"
   add_foreign_key "recovery_codes", "users"
   add_foreign_key "role_permissions", "permissions"
   add_foreign_key "role_permissions", "roles"

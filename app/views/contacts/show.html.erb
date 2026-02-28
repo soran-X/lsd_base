@@ -1,0 +1,113 @@
+<%# ── Header ──────────────────────────────────────────────────────────────── %>
+<div class="flex items-start justify-between mb-6 gap-4">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900"><%= @contact.display_name %></h1>
+    <% if @contact.title.present? %>
+      <p class="text-base text-gray-500 mt-0.5"><%= @contact.title %></p>
+    <% end %>
+  </div>
+  <div class="inline-flex items-center gap-2 shrink-0">
+    <%= link_to "Edit", edit_contact_path(@contact),
+          class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+    <%= link_to "All Contacts", contacts_path,
+          class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+    <%= button_to "Delete", contact_path(@contact), method: :delete,
+          data: { action: "click->confirm#open",
+                  confirm_message_param: "Remove \"#{@contact.display_name}\"? This cannot be undone." },
+          class: "inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" %>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <%# ── Left: details ──────────────────────────────────────────────────── %>
+  <div class="lg:col-span-2 space-y-5">
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact Details</p>
+      </div>
+      <dl class="divide-y divide-gray-100 px-5">
+        <% if @contact.company.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Company</dt>
+            <dd class="col-span-2 text-sm text-gray-800">
+              <%= link_to @contact.company.name, company_path(@contact.company),
+                    class: "text-indigo-600 hover:underline" %>
+            </dd>
+          </div>
+        <% end %>
+
+        <% if @contact.email.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Email</dt>
+            <dd class="col-span-2 text-sm">
+              <%= mail_to @contact.email, @contact.email,
+                    class: "text-indigo-600 hover:underline break-all" %>
+            </dd>
+          </div>
+        <% end %>
+
+        <% if @contact.phone.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Phone</dt>
+            <dd class="col-span-2 text-sm text-gray-800"><%= @contact.phone %></dd>
+          </div>
+        <% end %>
+      </dl>
+    </div>
+
+    <% if @contact.notes.present? %>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200">
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notes</p>
+        </div>
+        <div class="p-5 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+          <%= @contact.notes %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if @contact.books.any? %>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200">
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Books (<%= @contact.books.size %>)
+          </p>
+        </div>
+        <ul class="divide-y divide-gray-100">
+          <% @contact.books.each do |book| %>
+            <li class="px-5 py-3">
+              <%= link_to book.title, book_path(book),
+                    class: "text-sm font-medium text-gray-800 hover:text-indigo-600 transition-colors" %>
+              <% if book.credited_authors.any? %>
+                <p class="text-xs text-gray-400 mt-0.5"><%= book.credited_authors.map(&:display_name).join(", ") %></p>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+  </div>
+
+  <%# ── Right: meta ──────────────────────────────────────────────────── %>
+  <div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Record</p>
+      </div>
+      <dl class="divide-y divide-gray-100 px-5">
+        <div class="py-3">
+          <dt class="text-xs text-gray-400 mb-0.5">Added</dt>
+          <dd class="text-sm text-gray-700"><%= @contact.created_at.strftime("%b %-d, %Y") %></dd>
+        </div>
+        <div class="py-3">
+          <dt class="text-xs text-gray-400 mb-0.5">Updated</dt>
+          <dd class="text-sm text-gray-700"><%= @contact.updated_at.strftime("%b %-d, %Y") %></dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+</div>

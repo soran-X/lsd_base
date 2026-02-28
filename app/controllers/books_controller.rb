@@ -31,7 +31,9 @@ class BooksController < ApplicationController
     @book = Book.kept
                 .includes(:credited_authors, :translators, :film_tracking,
                            :primary_scout, :secondary_scout, :genres, :sub_genres,
-                           :client_types, :last_updated_by)
+                           :client_types, :last_updated_by,
+                           :reading_materials, :book_memos, :archive_notes,
+                           { client_activities: [:company, :contact] })
                 .find(params.expect(:id))
     history_min_level = case SiteSetting["book_history_visibility"]
                         when "admin" then 50
@@ -82,11 +84,67 @@ class BooksController < ApplicationController
   def update
     @book.last_updated_by = Current.user
 
+    # Snapshot author/translator IDs before the save so we can diff them after
+    author_ids_before     = @book.credited_authors.order(:id).pluck(:id)
+    translator_ids_before = @book.translators.order(:id).pluck(:id)
+
     respond_to do |format|
       if @book.update(book_params)
         assign_book_authors(@book)
-        changes = @book.previous_changes.except("updated_at", "synopsis_plain",
-                                                "last_updated_by_id", "created_at")
+
+        # ── Scalar field changes ────────────────────────────────────────────
+        # Exclude rich-text fields from previous_changes — Trix re-normalises
+        # HTML on every submit, so they always appear as changed.  We re-add
+        # them below only if the stripped text content actually differs.
+        changes = @book.previous_changes.except(
+          "updated_at", "synopsis_plain", "last_updated_by_id", "created_at",
+          "synopsis", "notes", "readers_report", "material_to_read"
+        )
+
+        # ── Rich-text fields: only log when text content changed ────────────
+        strip_html = ->(h) { h.to_s.gsub(/<[^>]+>/, " ").gsub(/\s+/, " ").strip }
+
+        # synopsis_plain is recomputed in before_save; compare it to avoid
+        # logging cosmetic HTML re-normalisations as real changes.
+        if @book.previous_changes.key?("synopsis_plain")
+          before_plain, after_plain = @book.previous_changes["synopsis_plain"]
+          # If synopsis_plain was nil (never computed), derive the effective before-value
+          # from the pre-update synopsis HTML so we don't log a false change.
+          if before_plain.nil?
+            old_html = @book.previous_changes.dig("synopsis", 0)
+            before_plain = old_html ?
+              old_html.gsub(/<[^>]+>/, " ").gsub(/&[a-zA-Z]+;|&#\d+;/, " ").gsub(/\s+/, " ").strip :
+              after_plain
+          end
+          changes["synopsis"] = @book.previous_changes["synopsis"] if before_plain != after_plain
+        end
+
+        %w[readers_report].each do |field|
+          next unless @book.previous_changes.key?(field)
+          before_t = strip_html.call(@book.previous_changes[field][0])
+          after_t  = strip_html.call(@book.previous_changes[field][1])
+          changes[field] = @book.previous_changes[field] if before_t != after_t
+        end
+
+        # ── Author / translator changes ─────────────────────────────────────
+        author_ids_after     = @book.credited_authors.reload.order(:id).pluck(:id)
+        translator_ids_after = @book.translators.reload.order(:id).pluck(:id)
+
+        name_list = ->(ids) {
+          ids.empty? ? "—" : Author.where(id: ids).order(:last_name, :first_name)
+                                   .map(&:display_name).join(", ")
+        }
+
+        if author_ids_before != author_ids_after
+          changes["authors"] = [name_list.call(author_ids_before),
+                                 name_list.call(author_ids_after)]
+        end
+
+        if translator_ids_before != translator_ids_after
+          changes["translators"] = [name_list.call(translator_ids_before),
+                                     name_list.call(translator_ids_after)]
+        end
+
         AuditLog.record(user: Current.user, action: "update", resource: @book,
                         metadata: { changes: changes }, request: request) if changes.any?
         format.html { redirect_to @book, notice: "Book was successfully updated.", status: :see_other }
@@ -125,12 +183,24 @@ class BooksController < ApplicationController
         :delivery_date, :followup_date,
         :confidential, :status,
         :lead_title, :tracking_material,
-        :notes, :readers_report,
+        :readers_report, :material_to_read,
         :primary_scout_id, :secondary_scout_id,
         genre_ids: [], sub_genre_ids: [], client_type_ids: [],
         film_tracking_attributes: [
           :id, :film_synopsis, :film_option,
           :readers_thoughts, :category, :_destroy
+        ],
+        reading_materials_attributes: [
+          [:id, :material, :reader, :number_of_pages, :date, :_destroy]
+        ],
+        client_activities_attributes: [
+          [:id, :date, :activity_type, :company_id, :contact_id, :content, :_destroy]
+        ],
+        book_memos_attributes: [
+          [:id, :note, :date, :_destroy]
+        ],
+        archive_notes_attributes: [
+          [:id, :note, :date, :_destroy]
         ]
       ]
     )

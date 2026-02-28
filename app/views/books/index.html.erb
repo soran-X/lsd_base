@@ -52,13 +52,15 @@
 <% if @catalog_view %>
 
   <%# ── Catalog view ────────────────────────────────────────────────────── %>
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 divide-y divide-gray-100 overflow-hidden">
+  <div class="flex flex-col gap-2">
     <% @books.each do |book| %>
-      <%= render "book_catalog", book: book %>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <%= render "book_catalog", book: book %>
+      </div>
     <% end %>
 
     <% if @books.empty? %>
-      <div class="px-6 py-12 text-center text-sm text-gray-500">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-12 text-center text-sm text-gray-500">
         <% if @query.present? %>
           No books matched <em>"<%= @query %>"</em>.
           <%= link_to "Clear search", books_path, class: "text-gray-700 hover:underline font-medium" %>

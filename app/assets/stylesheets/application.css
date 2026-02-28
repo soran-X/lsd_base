@@ -74,11 +74,12 @@ trix-editor {
 }
 
 /* ── Content styles — apply inside the editor AND in show/read views ─────── */
-.trix-content ul  { list-style: disc    !important; padding-left: 1.5rem  !important; }
-.trix-content ol  { list-style: decimal !important; padding-left: 1.5rem  !important; }
-.trix-content li  { margin-bottom: 0.15rem; }
+.trix-content ul, trix-editor ul { list-style: disc    !important; padding-left: 1.5rem !important; }
+.trix-content ol, trix-editor ol { list-style: decimal !important; padding-left: 1.5rem !important; }
+.trix-content li, trix-editor li { margin-bottom: 0.15rem; }
 
-.trix-content blockquote {
+.trix-content blockquote,
+trix-editor blockquote    {
   border-left: 3px solid #b87333;
   padding-left: 0.875rem;
   color: #6b7280;
@@ -86,7 +87,8 @@ trix-editor {
   margin: 0.5rem 0 0.5rem 0.25rem;
 }
 
-.trix-content h1 {
+.trix-content h1,
+trix-editor h1    {
   font-size: 1.2rem;
   font-weight: 700;
   line-height: 1.35;
@@ -94,14 +96,19 @@ trix-editor {
   color: #1c1917;
 }
 
-.trix-content a   { color: #3d6b52; text-decoration: underline; }
+.trix-content a,
+trix-editor a    { color: #3d6b52; text-decoration: underline; }
 
-.trix-content pre {
+.trix-content pre,
+trix-editor pre    {
   background-color: #f4f1eb;
   border: 1px solid #e5e0d8;
   border-radius: 0.375rem;
   padding: 0.625rem 0.875rem;
   font-size: 0.8125rem;
+  font-family: monospace;
+  white-space: pre-wrap !important;
+  overflow-x: auto;
 }
 
 /* Nested list indentation */
@@ -112,4 +119,50 @@ trix-editor {
 
 .catalog-card {
   padding: 30px !important;
+}
+
+/* ── Confirm dialog ─────────────────────────────────────────────────────────
+   Native <dialog> with a dimmed backdrop. Tailwind can't target ::backdrop,
+   so these rules live here.
+   ────────────────────────────────────────────────────────────────────────── */
+.confirm-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+.confirm-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+}
+.confirm-dialog[open] {
+  animation: dialog-pop 0.15s ease-out;
+}
+@keyframes dialog-pop {
+  from { opacity: 0; transform: translate(-50%, -48%); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* ── Viewport containment ───────────────────────────────────────────────────
+   Prevent any element from creating horizontal overflow.
+   The body is the scroll container; all children must stay within 100vw.
+   ────────────────────────────────────────────────────────────────────────── */
+html, body { overflow-x: hidden; max-width: 100%; }
+
+/* On mobile the sidebar is a fixed overlay, so the main content must have
+   no left margin regardless of what the server rendered. */
+@media (max-width: 767px) {
+  [data-sidebar-target="main"] { margin-left: 0 !important; }
+}
+
+/* ── Mobile sidebar: slide-in overlay ──────────────────────────────────────
+   Tailwind JIT won't generate translate utilities added dynamically via JS,
+   so we handle the mobile transform here with plain CSS.
+   On desktop (≥768px) the aside has no transform — the JS width/margin
+   collapse logic takes over.
+   ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .sidebar-nav { transform: translateX(-100%); }
+  .sidebar-nav.sidebar-mobile-open { transform: translateX(0); }
 }

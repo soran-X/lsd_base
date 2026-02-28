@@ -7,8 +7,7 @@ class Book < ApplicationRecord
     against: { title: "A", old_title: "B", synopsis_plain: "C" },
     associated_against: { authors: { last_name: "A", first_name: "A" } },
     using: {
-      tsearch: { prefix: true, dictionary: "simple" },
-      trigram: { word_similarity: true, threshold: 0.1 }
+      tsearch: { prefix: true, dictionary: "simple" }
     }
 
   # ── Enums ─────────────────────────────────────────────────────────────────
@@ -51,8 +50,17 @@ class Book < ApplicationRecord
   has_many :book_contacts, dependent: :destroy
   has_many :contacts,      through: :book_contacts
 
+  has_many :reading_materials, dependent: :destroy
+  has_many :client_activities, dependent: :destroy
+  has_many :book_memos,        dependent: :destroy
+  has_many :archive_notes,     dependent: :destroy
+
   # ── Nested attributes ─────────────────────────────────────────────────────
-  accepts_nested_attributes_for :film_tracking, allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :film_tracking,     allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :reading_materials, allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :client_activities, allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :book_memos,        allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :archive_notes,     allow_destroy: true, reject_if: :all_blank
 
   # ── Constants ─────────────────────────────────────────────────────────────
   SEASONS = [
@@ -81,7 +89,7 @@ class Book < ApplicationRecord
   private
 
   def extract_synopsis_plain
-    return unless synopsis_changed?
+    return unless synopsis_changed? || (synopsis.present? && synopsis_plain.nil?)
     self.synopsis_plain = synopsis.present? ?
       synopsis
         .gsub(/<[^>]+>/, " ")

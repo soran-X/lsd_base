@@ -1,0 +1,40 @@
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Company Types</h1>
+    <p class="text-sm text-gray-500 mt-0.5">Manage company classification types.</p>
+  </div>
+  <%= link_to "New Company Type", new_company_type_path,
+        class: "inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-sm
+                font-medium rounded-lg hover:bg-indigo-700 transition-colors" %>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+  <% if @company_types.any? %>
+    <ul class="divide-y divide-gray-100">
+      <% @company_types.each do |ct| %>
+        <li>
+          <div class="flex items-center justify-between px-5 py-3 hover:bg-gray-50 group">
+            <div>
+              <span class="text-sm font-medium text-gray-800"><%= ct.name %></span>
+              <span class="ml-2 text-xs text-gray-400"><%= ct.companies.count %> <%= "company".pluralize(ct.companies.count) %></span>
+            </div>
+            <div class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <%= link_to "Edit", edit_company_type_path(ct),
+                    class: "text-xs text-gray-500 hover:text-gray-700 font-medium" %>
+              <%= button_to "Delete", company_type_path(ct), method: :delete,
+                    data: { action: "click->confirm#open",
+                            confirm_message_param: "Delete \"#{ct.name}\"? Companies using this type will be unclassified." },
+                    class: "text-xs text-red-500 hover:text-red-700 font-medium bg-transparent border-0 cursor-pointer p-0" %>
+            </div>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="text-center py-16 text-sm text-gray-400">
+      <p class="mb-3">No company types yet.</p>
+      <%= link_to "Add the first type", new_company_type_path,
+            class: "text-indigo-600 hover:text-indigo-800 font-medium" %>
+    </div>
+  <% end %>
+</div>

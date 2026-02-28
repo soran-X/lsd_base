@@ -27,7 +27,10 @@ export default class extends Controller {
     searchUrl:  String,
     createUrl:  String,
     fieldName:  String,
-    role:       { type: String, default: "Author" }
+    role:       { type: String, default: "Author" },
+    chipCls:    { type: String, default: "bg-indigo-50 text-indigo-800 border border-indigo-200" },
+    btnCls:     { type: String, default: "hover:bg-indigo-200 text-indigo-400 hover:text-indigo-700 focus:ring-indigo-400" }
+
   }
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -234,7 +237,7 @@ export default class extends Controller {
     chip.className = [
       "inline-flex items-center gap-2 pl-4 pr-2.5 py-2",
       "rounded-full text-sm font-medium",
-      "bg-indigo-50 text-indigo-800 border border-indigo-200",
+      this.chipClsValue,
       "transition-opacity duration-150"
     ].join(" ")
     chip.dataset.authorId    = author.id
@@ -246,8 +249,7 @@ export default class extends Controller {
               data-author-id="${author.id}"
               data-action="click->author-combobox#removeChip"
               title="Remove"
-              class="rounded-full p-1 hover:bg-indigo-200 text-indigo-400 hover:text-indigo-700
-                     focus:outline-none focus:ring-1 focus:ring-indigo-400 transition-colors">
+              class="rounded-full p-1 ${this.btnClsValue} focus:outline-none focus:ring-1 transition-colors">
         <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
           <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-2.72 2.72a.75.75 0
                    101.06 1.06L10 11.06l2.72 2.72a.75.75 0 101.06-1.06L11.06 10l2.72-2.72a.75.75

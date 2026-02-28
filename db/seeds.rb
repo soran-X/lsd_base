@@ -71,3 +71,16 @@ superadmin.assign_attributes(
 superadmin.save!
 
 puts "SuperAdmin user: #{superadmin.email}"
+
+# ===========================================================================
+# Territories
+# ===========================================================================
+%w[
+  ANZ AUS BRA CAN CHN DNK ESP FIN FRA GER
+  GRC HUN ITA JAP KOR NLD NOR POL POR RUS
+  SWE TUR UK USA WOR
+].each do |name|
+  Territory.find_or_create_by!(name: name)
+end
+
+puts "Territories seeded: #{Territory.pluck(:name).join(', ')}"

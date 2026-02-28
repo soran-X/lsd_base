@@ -1,0 +1,176 @@
+<%# ── Header ──────────────────────────────────────────────────────────────── %>
+<div class="flex items-start justify-between mb-6 gap-4">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900"><%= @company.name %></h1>
+    <% if @company.company_type.present? %>
+      <p class="text-sm text-gray-500 mt-0.5"><%= @company.company_type.name %></p>
+    <% end %>
+  </div>
+  <div class="inline-flex items-center gap-2 shrink-0">
+    <%= link_to "Edit", edit_company_path(@company),
+          class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+    <%= link_to "All Companies", companies_path,
+          class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+    <%= button_to "Delete", company_path(@company), method: :delete,
+          data: { action: "click->confirm#open",
+                  confirm_message_param: "Remove \"#{@company.name}\"? This cannot be undone." },
+          class: "inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" %>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <%# ── Left: details ──────────────────────────────────────────────────── %>
+  <div class="lg:col-span-2 space-y-5">
+
+    <%# Identity + Address %%>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200 flex items-center gap-3">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Company Details</p>
+        <% if @company.viewable_by_clients? %>
+          <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Visible to Clients</span>
+        <% end %>
+        <% if @company.nest_subagents? %>
+          <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">Nests Subagents</span>
+        <% end %>
+      </div>
+      <dl class="divide-y divide-gray-100 px-5">
+        <% if @company.website.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Website</dt>
+            <dd class="col-span-2 text-sm text-indigo-600">
+              <%= link_to @company.website, @company.website, target: "_blank", rel: "noopener",
+                    class: "hover:underline break-all" %>
+            </dd>
+          </div>
+        <% end %>
+
+        <% address = [@company.address_line_1, @company.address_line_2,
+                      [@company.city, @company.state].compact.join(", "),
+                      @company.postal_code, @company.country].compact_blank.join("\n") %>
+        <% if address.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Address</dt>
+            <dd class="col-span-2 text-sm text-gray-800 whitespace-pre-line"><%= address %></dd>
+          </div>
+        <% end %>
+
+        <% if @company.phone.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Phone</dt>
+            <dd class="col-span-2 text-sm text-gray-800"><%= @company.phone %></dd>
+          </div>
+        <% end %>
+
+        <% if @company.fax.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Fax</dt>
+            <dd class="col-span-2 text-sm text-gray-800"><%= @company.fax %></dd>
+          </div>
+        <% end %>
+      </dl>
+    </div>
+
+    <% if @company.notes.present? %>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200">
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notes</p>
+        </div>
+        <div class="p-5 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+          <%= @company.notes %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Books %%>
+    <% if @company.books.any? %>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200">
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Books (<%= @company.books.size %>)
+          </p>
+        </div>
+        <ul class="divide-y divide-gray-100">
+          <% @company.books.first(10).each do |book| %>
+            <li class="px-5 py-3 flex items-center justify-between gap-4">
+              <div>
+                <%= link_to book.title, book_path(book),
+                      class: "text-sm font-medium text-gray-800 hover:text-indigo-600 transition-colors" %>
+                <% if book.credited_authors.any? %>
+                  <p class="text-xs text-gray-400 mt-0.5"><%= book.credited_authors.map(&:display_name).join(", ") %></p>
+                <% end %>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <%# Subagents %>
+    <% if @company.company_subagents.any? %>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200">
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Subagents (<%= @company.company_subagents.size %>)
+          </p>
+        </div>
+        <table class="min-w-full divide-y divide-gray-100">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Territory</th>
+              <th class="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Company</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <% @company.company_subagents.each do |sa| %>
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-5 py-3 text-sm text-gray-700">
+                  <%= sa.territory&.name || "—" %>
+                </td>
+                <td class="px-5 py-3 text-sm">
+                  <%= link_to sa.subagent_company.name, company_path(sa.subagent_company),
+                        class: "text-indigo-600 hover:underline" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+
+  </div>
+
+  <%# ── Right: contacts ──────────────────────────────────────────────── %>
+  <div class="space-y-5">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200 flex items-center justify-between">
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Contacts (<%= @company.contacts.size %>)
+        </p>
+        <%= link_to "+ Add", new_contact_path(company_id: @company.id),
+              class: "text-xs text-indigo-600 hover:text-indigo-800 font-medium" %>
+      </div>
+      <% if @company.contacts.any? %>
+        <ul class="divide-y divide-gray-100">
+          <% @company.contacts.each do |contact| %>
+            <li class="px-5 py-3">
+              <%= link_to contact.display_name, contact_path(contact),
+                    class: "text-sm font-medium text-gray-800 hover:text-indigo-600 transition-colors" %>
+              <% if contact.title.present? %>
+                <p class="text-xs text-gray-400 mt-0.5"><%= contact.title %></p>
+              <% end %>
+              <% if contact.email.present? %>
+                <p class="text-xs text-gray-500 mt-0.5">
+                  <%= mail_to contact.email, contact.email, class: "hover:text-indigo-600" %>
+                </p>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="px-5 py-6 text-sm text-gray-400 italic text-center">No contacts linked.</p>
+      <% end %>
+    </div>
+  </div>
+
+</div>

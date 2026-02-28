@@ -67,6 +67,12 @@ Rails.application.routes.draw do
   resources :authors do
     collection { get :search, defaults: { format: :json } }
   end
+  resources :companies do
+    collection { get :search, defaults: { format: :json } }
+  end
+  resources :contacts
+  resources :company_types
+  resources :territories
 
   # Dashboard & misc
   get  "dashboard",        to: "home#dashboard", as: :dashboard
