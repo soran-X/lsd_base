@@ -1,0 +1,351 @@
+<%# locals: (book_search:, genres:, sub_genres:, client_types:,
+             saved_authors: [], saved_scouts: [], saved_readers: [],
+             saved_agencies: [], saved_film_agencies: [],
+             saved_publishers: [], saved_editors: [],
+             saved_rights_holders: [],
+             saved_agents: [], saved_film_agents: [],
+             saved_ca_companies: [], saved_ca_contacts: []) %>
+
+<% p = book_search.params %>
+
+<%# Helpers for static-combobox pre-selection -%>
+<% sel_ids    = ->(key, collection) { collection.map { |o| { id: o.id, label: o.name }.stringify_keys } } %>
+<% saved_ids  = ->(key) { Array(p[key]).map(&:to_i) } %>
+
+<%= form_with url: book_searches_path, method: :post do |f| %>
+  <div class="grid grid-cols-1 xl:grid-cols-[3fr_1px_2fr] gap-0">
+
+    <%# ── Column 1: Search parameters ─────────────────────────────────────── %>
+    <div class="space-y-6 pr-0 xl:pr-10">
+
+      <%# Keyword -%>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Keyword</label>
+        <%= text_field_tag "q[keyword]", p["keyword"],
+              class: "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500",
+              placeholder: '"exact phrase"   OR   WITHOUT word' %>
+        <p class="mt-1 text-xs text-gray-400">
+          Supports <code class="bg-gray-100 px-1 rounded">OR</code>,
+          <code class="bg-gray-100 px-1 rounded">WITHOUT</code>,
+          and <code class="bg-gray-100 px-1 rounded">"quoted phrases"</code>
+        </p>
+      </div>
+
+      <%# Status — toggle chips -%>
+      <div>
+        <p class="text-sm font-semibold text-gray-700 mb-2">Status</p>
+        <div data-controller="toggle-chips"
+             data-toggle-chips-field-name-value="q[status][]"
+             class="flex flex-wrap gap-2">
+          <% Book.statuses.each_key do |key| %>
+            <button type="button"
+                    data-chip-value="<%= key %>"
+                    data-selected="<%= Array(p["status"]).include?(key) %>"
+                    data-action="click->toggle-chips#toggle"
+                    class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors cursor-pointer">
+              <%= key.humanize %>
+            </button>
+          <% end %>
+          <div data-toggle-chips-target="inputs"></div>
+        </div>
+      </div>
+
+      <%# Flags — each is an independent single-value toggle -%>
+      <div>
+        <p class="text-sm font-semibold text-gray-700 mb-2">Flags</p>
+        <div class="flex flex-wrap gap-2">
+          <%# Each flag needs its own controller + inputs target because they have different field names -%>
+          <% [
+               ["To Read",          "q[to_read]",          p["to_read"].present?],
+               ["Lead Title",       "q[lead_title]",       p["lead_title"].present?],
+               ["Tracking Material","q[tracking_material]",p["tracking_material"].present?]
+             ].each do |label_text, field, selected| %>
+            <div data-controller="toggle-chips"
+                 data-toggle-chips-field-name-value="<%= field %>"
+                 class="inline-flex items-center">
+              <button type="button"
+                      data-chip-value="1"
+                      data-selected="<%= selected %>"
+                      data-action="click->toggle-chips#toggle"
+                      class="px-3 py-1.5 rounded-full text-sm font-medium border transition-colors cursor-pointer">
+                <%= label_text %>
+              </button>
+              <div data-toggle-chips-target="inputs" class="hidden"></div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <%# Client Type — static combobox -%>
+      <% if client_types.any? %>
+        <%= render "book_searches/static_chips_field",
+              label:      "Client Type",
+              field_name: "q[client_type_ids][]",
+              options:    client_types.map { |ct| { id: ct.id, label: ct.name } },
+              selected:   client_types.select { |ct| saved_ids.call("client_type_ids").include?(ct.id) }
+                                      .map    { |ct| { id: ct.id, label: ct.name } } %>
+      <% end %>
+
+      <%# Genre — static combobox -%>
+      <% if genres.any? %>
+        <%= render "book_searches/static_chips_field",
+              label:      "Genre",
+              field_name: "q[genre_ids][]",
+              options:    genres.map { |g| { id: g.id, label: g.name } },
+              selected:   genres.select { |g| saved_ids.call("genre_ids").include?(g.id) }
+                                .map   { |g| { id: g.id, label: g.name } } %>
+      <% end %>
+
+      <%# Subgenre — static combobox -%>
+      <% if sub_genres.any? %>
+        <%= render "book_searches/static_chips_field",
+              label:      "Subgenre",
+              field_name: "q[sub_genre_ids][]",
+              options:    sub_genres.map { |sg| { id: sg.id, label: sg.name } },
+              selected:   sub_genres.select { |sg| saved_ids.call("sub_genre_ids").include?(sg.id) }
+                                    .map    { |sg| { id: sg.id, label: sg.name } } %>
+      <% end %>
+
+      <%# Activity Type — static combobox -%>
+      <%
+        activity_type_options = [
+          { id: "ACQ", label: "ACQ" },
+          { id: "BOI", label: "BOI" },
+          { id: "OFF", label: "OFF" },
+          { id: "TD",  label: "TD"  }
+        ]
+        activity_type_selected = activity_type_options.select do |o|
+          Array(p["activity_types"]).include?(o[:id])
+        end
+      %>
+      <%= render "book_searches/static_chips_field",
+            label:      "Activity Type",
+            field_name: "q[activity_types][]",
+            options:    activity_type_options,
+            selected:   activity_type_selected,
+            use_string_ids: true %>
+
+      <%# Author(s) — API chips -%>
+      <%= render "book_searches/chips_field",
+            label:       "Author/Translator(s)",
+            controller:  "company-chips",
+            search_url:  search_authors_path(format: :json),
+            field_name:  "q[author_ids][]",
+            saved_items: saved_authors,
+            id_attr:     "company-id",
+            label_attr:  "company-label" %>
+
+      <%# Rights Holder(s) -%>
+      <%= render "book_searches/chips_field",
+            label:       "Rights Holder(s)",
+            controller:  "company-chips",
+            search_url:  search_companies_path(format: :json),
+            field_name:  "q[rights_holder_company_ids][]",
+            saved_items: saved_rights_holders,
+            id_attr:     "company-id",
+            label_attr:  "company-label" %>
+
+      <%# Publisher(s) -%>
+      <%= render "book_searches/chips_field",
+            label:       "Publisher(s)",
+            controller:  "company-chips",
+            search_url:  search_companies_path(format: :json),
+            field_name:  "q[publisher_company_ids][]",
+            saved_items: saved_publishers,
+            id_attr:     "company-id",
+            label_attr:  "company-label" %>
+
+      <%# Editor(s) -%>
+      <%= render "book_searches/chips_field",
+            label:       "Editor(s)",
+            controller:  "company-chips",
+            search_url:  search_companies_path(format: :json),
+            field_name:  "q[editor_company_ids][]",
+            saved_items: saved_editors,
+            id_attr:     "company-id",
+            label_attr:  "company-label" %>
+
+      <%# Literary Agency -%>
+      <%= render "book_searches/chips_field",
+            label:       "Literary Agency",
+            controller:  "company-chips",
+            search_url:  search_companies_path(format: :json),
+            field_name:  "q[agency_company_ids][]",
+            saved_items: saved_agencies,
+            id_attr:     "company-id",
+            label_attr:  "company-label" %>
+
+      <%# Literary Agent -%>
+      <%= render "book_searches/chips_field",
+            label:       "Literary Agent",
+            controller:  "contact-chips",
+            search_url:  search_contacts_path(format: :json),
+            field_name:  "q[agent_contact_ids][]",
+            saved_items: saved_agents,
+            id_attr:     "contact-id",
+            label_attr:  "contact-label" %>
+
+      <%# Film Agency -%>
+      <%= render "book_searches/chips_field",
+            label:       "Film Agency",
+            controller:  "company-chips",
+            search_url:  search_companies_path(format: :json),
+            field_name:  "q[film_agency_company_ids][]",
+            saved_items: saved_film_agencies,
+            id_attr:     "company-id",
+            label_attr:  "company-label" %>
+
+      <%# Film Agent -%>
+      <%= render "book_searches/chips_field",
+            label:       "Film Agent",
+            controller:  "contact-chips",
+            search_url:  search_contacts_path(format: :json),
+            field_name:  "q[film_agent_contact_ids][]",
+            saved_items: saved_film_agents,
+            id_attr:     "contact-id",
+            label_attr:  "contact-label" %>
+
+      <%# CA Company -%>
+      <%= render "book_searches/chips_field",
+            label:       "CA Client / Company",
+            controller:  "company-chips",
+            search_url:  search_companies_path(format: :json),
+            field_name:  "q[client_activity_company_ids][]",
+            saved_items: saved_ca_companies,
+            id_attr:     "company-id",
+            label_attr:  "company-label" %>
+
+      <%# CA Contact -%>
+      <%= render "book_searches/chips_field",
+            label:       "CA Contact",
+            controller:  "contact-chips",
+            search_url:  search_contacts_path(format: :json),
+            field_name:  "q[client_activity_contact_ids][]",
+            saved_items: saved_ca_contacts,
+            id_attr:     "contact-id",
+            label_attr:  "contact-label" %>
+
+      <%# Tracked By (scouts) -%>
+      <%= render "book_searches/chips_field",
+            label:       "Tracked By",
+            controller:  "company-chips",
+            search_url:  search_users_path(format: :json),
+            field_name:  "q[scout_ids][]",
+            saved_items: saved_scouts,
+            id_attr:     "company-id",
+            label_attr:  "company-label" %>
+
+      <%# Reader(s) -%>
+      <%= render "book_searches/chips_field",
+            label:       "Reader(s)",
+            controller:  "company-chips",
+            search_url:  search_users_path(format: :json),
+            field_name:  "q[reader_ids][]",
+            saved_items: saved_readers,
+            id_attr:     "company-id",
+            label_attr:  "company-label" %>
+
+      <%# Rights Sold -%>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Rights Sold (text search)</label>
+        <%= text_field_tag "q[rights_sold_text]", p["rights_sold_text"],
+              class: "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500",
+              placeholder: "e.g. France" %>
+      </div>
+
+    </div>
+
+    <%# ── Divider ──────────────────────────────────────────────────────────── %>
+    <div class="hidden xl:block bg-gray-200 mx-0"></div>
+
+    <%# ── Column 2: Dates ─────────────────────────────────────────────────── %>
+    <div class="space-y-6 pt-6 xl:pt-0 xl:pl-10 border-t border-gray-200 xl:border-t-0">
+
+      <p class="text-sm font-semibold text-gray-700 -mb-2">Date Ranges</p>
+
+      <%= render "book_searches/date_range",
+            label:        "Updated",
+            after_name:   "q[updated_after]",
+            before_name:  "q[updated_before]",
+            after_value:  p["updated_after"],
+            before_value: p["updated_before"] %>
+
+      <%= render "book_searches/date_range",
+            label:        "Entered",
+            after_name:   "q[entered_after]",
+            before_name:  "q[entered_before]",
+            after_value:  p["entered_after"],
+            before_value: p["entered_before"] %>
+
+      <%= render "book_searches/date_range",
+            label:        "Delivered",
+            after_name:   "q[delivered_after]",
+            before_name:  "q[delivered_before]",
+            after_value:  p["delivered_after"],
+            before_value: p["delivered_before"] %>
+
+      <%= render "book_searches/date_range",
+            label:        "Follow Up",
+            after_name:   "q[followup_after]",
+            before_name:  "q[followup_before]",
+            after_value:  p["followup_after"],
+            before_value: p["followup_before"] %>
+
+      <%= render "book_searches/date_range",
+            label:        "Activity Date",
+            after_name:   "q[activity_after]",
+            before_name:  "q[activity_before]",
+            after_value:  p["activity_after"],
+            before_value: p["activity_before"] %>
+
+      <%= render "book_searches/date_range",
+            label:        "Read Date",
+            after_name:   "q[read_after]",
+            before_name:  "q[read_before]",
+            after_value:  p["read_after"],
+            before_value: p["read_before"] %>
+
+      <%# Published (year dropdowns) -%>
+      <div>
+        <p class="text-sm font-semibold text-gray-700 mb-1.5">Published</p>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs text-gray-500 mb-0.5">From year</label>
+            <select name="q[published_after]"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">Any</option>
+              <% Book::PUBLICATION_YEARS.each do |yr| %>
+                <option value="<%= yr %>" <%= "selected" if p["published_after"].to_s == yr.to_s %>><%= yr %></option>
+              <% end %>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-0.5">To year</label>
+            <select name="q[published_before]"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">Any</option>
+              <% Book::PUBLICATION_YEARS.each do |yr| %>
+                <option value="<%= yr %>" <%= "selected" if p["published_before"].to_s == yr.to_s %>><%= yr %></option>
+              <% end %>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <%# Submit -%>
+  <div class="pt-6 mt-6 border-t border-gray-200 flex items-center gap-3">
+    <%= submit_tag "Search & Save",
+          class: "px-5 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg
+                  hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2
+                  focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer" %>
+    <%= link_to "Clear", new_book_search_path,
+          class: "text-sm text-gray-400 hover:text-gray-600 transition-colors" %>
+  </div>
+<% end %>

@@ -1,0 +1,46 @@
+<%# locals: (label:, controller:, search_url:, field_name:, saved_items:, id_attr:, label_attr:) %>
+<div>
+  <p class="text-sm font-medium text-gray-700 mb-1"><%= label %></p>
+  <div data-controller="<%= controller %>"
+       data-<%= controller %>-search-url-value="<%= search_url %>"
+       data-<%= controller %>-field-name-value="<%= field_name %>"
+       class="relative">
+    <%# Pre-populated chips container %>
+    <div data-<%= controller %>-target="chips"
+         class="flex flex-wrap gap-1.5 mb-1.5">
+      <% saved_items.each do |item| %>
+        <div data-<%= id_attr %>="<%= item.id %>"
+             data-<%= label_attr %>="<%= item.respond_to?(:display_name) ? item.display_name : item.name %>"
+             class="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full text-sm font-medium
+                    <%= controller == 'contact-chips' ? 'bg-violet-50 text-violet-800 border border-violet-200' : 'bg-sky-50 text-sky-800 border border-sky-200' %>">
+          <span><%= item.respond_to?(:display_name) ? item.display_name : item.name %></span>
+          <input type="hidden" name="<%= field_name %>" value="<%= item.id %>">
+          <button type="button"
+                  data-<%= id_attr %>="<%= item.id %>"
+                  data-action="click-><%= controller %>#removeChip"
+                  title="Remove"
+                  class="rounded-full p-0.5 transition-colors
+                         <%= controller == 'contact-chips' ? 'hover:bg-violet-200 text-violet-400 hover:text-violet-700' : 'hover:bg-sky-200 text-sky-400 hover:text-sky-700' %>">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-2.72 2.72a.75.75 0 101.06 1.06L10 11.06l2.72 2.72a.75.75 0 101.06-1.06L11.06 10l2.72-2.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+            </svg>
+          </button>
+        </div>
+      <% end %>
+    </div>
+    <%# Search input %>
+    <input type="text"
+           data-<%= controller %>-target="input"
+           data-action="input-><%= controller %>#onInput keydown-><%= controller %>#onKeydown"
+           placeholder="Search…"
+           autocomplete="off"
+           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500">
+    <%# Dropdown %>
+    <div data-<%= controller %>-target="dropdown"
+         hidden
+         class="hidden absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg max-h-60 overflow-y-auto">
+      <ul data-<%= controller %>-target="list" role="listbox" class="py-1"></ul>
+    </div>
+  </div>
+</div>

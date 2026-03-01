@@ -1,7 +1,40 @@
-<%# Reader's report tab panel. %>
-<div data-tab-target="panel" data-tab="report" class="hidden px-6 py-6">
-  <p class="text-sm text-gray-500 mb-3">Formal written evaluation of this title.</p>
-  <div data-controller="rich-text"
-       data-rich-text-name-value="book[readers_report]"
-       data-rich-text-value-value="<%= book.readers_report.to_s %>"></div>
+<%# Reader's report tab panel — nested individual report records. %>
+<div data-tab-target="panel" data-tab="report" class="hidden px-6 py-6 space-y-4">
+
+  <%# ── Section-level confidential toggle ─────────────────────────────── %>
+  <div class="flex items-center justify-between pb-3 border-b border-gray-200">
+    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Reader's Reports</p>
+    <label class="flex items-center gap-2 cursor-pointer select-none">
+      <%= f.check_box :confidential_report, class: "sr-only peer" %>
+      <div class="relative w-9 h-5 rounded-full transition-colors bg-gray-200
+                  peer-checked:bg-indigo-600
+                  after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                  after:h-4 after:w-4 after:bg-white after:rounded-full after:shadow
+                  after:transition-transform peer-checked:after:translate-x-4"></div>
+      <span class="text-xs font-medium text-gray-600">Confidential</span>
+    </label>
+  </div>
+
+  <%# ── Nested report entries ──────────────────────────────────────────── %>
+  <div class="rounded-lg border border-gray-200" data-controller="nested-form">
+    <div class="divide-y divide-gray-100" data-nested-form-target="container">
+      <%= f.fields_for :readers_reports do |rr| %>
+        <%= render "books/form/readers_report_row", rr: rr, book: book %>
+      <% end %>
+    </div>
+
+    <template data-nested-form-target="template">
+      <%= f.fields_for :readers_reports, ReadersReport.new, child_index: "__INDEX__" do |rr| %>
+        <%= render "books/form/readers_report_row", rr: rr, book: book %>
+      <% end %>
+    </template>
+
+    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100">
+      <button type="button" data-action="nested-form#add"
+              class="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+        + Add Reader's Report
+      </button>
+    </div>
+  </div>
+
 </div>

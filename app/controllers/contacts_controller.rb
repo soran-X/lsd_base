@@ -62,7 +62,10 @@ class ContactsController < ApplicationController
 
   def contact_params
     params.expect(contact: [
-      :first_name, :last_name, :title, :email, :phone, :notes
+      :first_name, :last_name, :title, :email, :phone, :notes,
+      :assistant_name, :tracked_by_id,
+      :address_line_1, :address_line_2, :city, :state, :country, :zip,
+      :direct_number, :mobile_number, :home_number, :fax_number
     ])
   end
 

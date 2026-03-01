@@ -1,0 +1,117 @@
+<%# Individual readers_report row — used by both the live loop and the <template>. %>
+<div class="p-4 space-y-4" data-nested-form-row>
+  <%= rr.hidden_field :id %>
+  <%= rr.hidden_field :_destroy, value: "0" %>
+
+  <%# ── Row 1: date / reader / sent_to / remove ──────────────────────── %>
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+    <div>
+      <%= rr.label :report_date, "Report Date", class: "block text-xs font-medium text-gray-600 mb-1" %>
+      <%= rr.date_field :report_date,
+            class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div class="relative"
+         data-controller="company-combobox"
+         data-company-combobox-url-value="<%= search_users_path(format: :json) %>">
+      <p class="block text-xs font-medium text-gray-600 mb-1">Reader</p>
+      <input type="text"
+             data-company-combobox-target="input"
+             placeholder="Search users…"
+             value="<%= rr.object.reader&.display_name %>"
+             autocomplete="off"
+             class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500"
+             data-action="input->company-combobox#search keydown->company-combobox#onKeydown" />
+      <input type="hidden"
+             name="<%= rr.object_name %>[reader_id]"
+             value="<%= rr.object.reader_id %>"
+             data-company-combobox-target="hiddenField" />
+      <div data-company-combobox-target="dropdown"
+           class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                  border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+    </div>
+
+    <div>
+      <%= rr.label :sent_to, "Sent To", class: "block text-xs font-medium text-gray-600 mb-1" %>
+      <%= rr.text_field :sent_to,
+            class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                    focus:outline-none focus:ring-2 focus:ring-indigo-500" %>
+    </div>
+
+    <div class="flex items-end justify-end pb-0.5">
+      <button type="button" data-action="nested-form#remove"
+              class="text-xs text-red-400 hover:text-red-600 transition-colors">Remove</button>
+    </div>
+  </div>
+
+  <%# ── Row 2: publishing / film recommendation ──────────────────────── %>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <%= rr.label :publishing_recommended, "Publishing Recommended?",
+              class: "block text-xs font-medium text-gray-600 mb-1" %>
+        <%= rr.select :publishing_recommended,
+              [["— select —", ""], ["Yes", "yes"], ["No", "no"], ["Mixed", "mixed"]],
+              { selected: rr.object.publishing_recommended },
+              class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" %>
+      </div>
+      <div>
+        <%= rr.label :film_recommended, "Film Recommended?",
+              class: "block text-xs font-medium text-gray-600 mb-1" %>
+        <%= rr.select :film_recommended,
+              [["— select —", ""], ["Yes", "yes"], ["No", "no"], ["Mixed", "mixed"]],
+              { selected: rr.object.film_recommended },
+              class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                      focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" %>
+      </div>
+    </div>
+    <div>
+      <%= rr.label :publishing_recommendation, "Publishing Recommendation",
+            class: "block text-xs font-medium text-gray-600 mb-1" %>
+      <div data-controller="rich-text"
+           data-rich-text-name-value="<%= rr.object_name %>[publishing_recommendation]"
+           data-rich-text-value-value="<%= rr.object.publishing_recommendation.to_s %>"></div>
+    </div>
+  </div>
+
+  <%# ── Row 3: material select ──────────────────────────────────────────── %>
+  <div>
+    <%= rr.label :reading_material_id, "Material",
+          class: "block text-xs font-medium text-gray-600 mb-1" %>
+    <%= rr.select :reading_material_id,
+          book.reading_materials.map { |rm|
+            label = ActionController::Base.helpers.strip_tags(rm.material.to_s).squish
+            label = "#{rm.date&.strftime('%b %d, %Y')} — #{label}".squish if rm.date.present?
+            [label.presence || "(no label)", rm.id]
+          },
+          { include_blank: "— select material —", selected: rr.object.reading_material_id },
+          class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" %>
+  </div>
+
+  <%# ── Rich text fields ───────────────────────────────────────────────── %>
+  <div>
+    <%= rr.label :comments, class: "block text-xs font-medium text-gray-600 mb-1" %>
+    <div data-controller="rich-text"
+         data-rich-text-name-value="<%= rr.object_name %>[comments]"
+         data-rich-text-value-value="<%= rr.object.comments.to_s %>"></div>
+  </div>
+
+  <div>
+    <%= rr.label :film_commentary, "Film Commentary",
+          class: "block text-xs font-medium text-gray-600 mb-1" %>
+    <div data-controller="rich-text"
+         data-rich-text-name-value="<%= rr.object_name %>[film_commentary]"
+         data-rich-text-value-value="<%= rr.object.film_commentary.to_s %>"></div>
+  </div>
+
+  <div>
+    <%= rr.label :synopsis, class: "block text-xs font-medium text-gray-600 mb-1" %>
+    <div data-controller="rich-text"
+         data-rich-text-name-value="<%= rr.object_name %>[synopsis]"
+         data-rich-text-value-value="<%= rr.object.synopsis.to_s %>"></div>
+  </div>
+</div>

@@ -1,0 +1,33 @@
+<%# locals: (label:, field_name:, options:, selected: [], use_string_ids: false) %>
+<%# options / selected: arrays of { id:, label: } hashes (symbol or string keys) %>
+<div>
+  <p class="text-sm font-semibold text-gray-700 mb-1.5"><%= label %></p>
+  <div data-controller="static-combobox"
+       data-static-combobox-options-value="<%= options.to_json %>"
+       data-static-combobox-selected-value="<%= selected.to_json %>"
+       data-static-combobox-field-name-value="<%= field_name %>"
+       class="relative">
+
+    <%# Chip area -%>
+    <div data-static-combobox-target="chips"
+         class="flex flex-wrap gap-1.5 mb-1.5 empty:hidden">
+    </div>
+
+    <%# Search input -%>
+    <input type="text"
+           data-static-combobox-target="input"
+           data-action="input->static-combobox#onInput focus->static-combobox#onFocus keydown->static-combobox#onKeydown"
+           placeholder="Search <%= label.downcase %>…"
+           autocomplete="off"
+           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+    <%# Dropdown -%>
+    <div data-static-combobox-target="dropdown"
+         hidden
+         class="hidden absolute z-10 mt-1 w-full rounded-lg border border-gray-200
+                bg-white shadow-lg max-h-56 overflow-y-auto">
+      <ul data-static-combobox-target="list" role="listbox" class="py-1"></ul>
+    </div>
+  </div>
+</div>

@@ -76,6 +76,7 @@ class Book < ApplicationRecord
   has_many :client_activities, dependent: :destroy
   has_many :book_memos,        dependent: :destroy
   has_many :archive_notes,     dependent: :destroy
+  has_many :readers_reports,   dependent: :destroy
 
   # ── Nested attributes ─────────────────────────────────────────────────────
   accepts_nested_attributes_for :book_updates,    allow_destroy: true, reject_if: :all_blank
@@ -85,6 +86,7 @@ class Book < ApplicationRecord
   accepts_nested_attributes_for :client_activities, allow_destroy: true, reject_if: :all_blank
   accepts_nested_attributes_for :book_memos,        allow_destroy: true, reject_if: :all_blank
   accepts_nested_attributes_for :archive_notes,     allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :readers_reports,   allow_destroy: true, reject_if: :all_blank
 
   # ── Constants ─────────────────────────────────────────────────────────────
   SEASONS = [
@@ -100,6 +102,7 @@ class Book < ApplicationRecord
 
   # ── Callbacks ─────────────────────────────────────────────────────────────
   before_save :extract_synopsis_plain
+  before_save :extract_plain_fields
 
   # ── Helpers ───────────────────────────────────────────────────────────────
   def display_authors
@@ -121,5 +124,14 @@ class Book < ApplicationRecord
         .gsub(/\s+/, " ")
         .strip :
       nil
+  end
+
+  def extract_plain_fields
+    strip = ->(h) { h.to_s.gsub(/<[^>]+>/, " ").gsub(/&[a-zA-Z]+;|&#\d+;/, " ").gsub(/\s+/, " ").strip.presence }
+    self.material_plain    = strip.call(material)
+    self.pub_info_plain    = strip.call(pub_info)
+    self.log_line_plain    = strip.call(log_line)
+    self.notes_plain       = strip.call(notes)
+    self.rights_sold_plain = strip.call(rights_sold)
   end
 end

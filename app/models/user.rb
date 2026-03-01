@@ -1,5 +1,10 @@
 class User < ApplicationRecord
   include Discard::Model
+  include PgSearch::Model
+
+  pg_search_scope :search_by_name,
+    against: { first_name: "A", last_name: "A", email: "B" },
+    using: { tsearch: { prefix: true, dictionary: "simple" } }
 
   has_secure_password
 
@@ -19,6 +24,7 @@ class User < ApplicationRecord
   has_many :sessions, dependent: :destroy
   has_many :recovery_codes, dependent: :destroy
   has_many :audit_logs, dependent: :nullify
+  has_many :book_searches, dependent: :destroy
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :password, allow_nil: true, length: { minimum: 12 }

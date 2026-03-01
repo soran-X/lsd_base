@@ -1,7 +1,13 @@
 class UsersController < ApplicationController
-  before_action :require_admin!
+  before_action :require_admin!, except: [:search]
   before_action :set_user, only: %i[show edit update destroy]
   before_action -> { enforce_hierarchy!(@user) }, only: %i[show edit update destroy]
+
+  def search
+    q = params[:q].to_s.strip
+    users = q.length >= 1 ? User.kept.search_by_name(q).limit(10) : User.kept.order(:last_name, :first_name).limit(10)
+    render json: users.map { |u| { id: u.id, label: u.display_name } }
+  end
 
   def index
     @users = User.includes(:role).order(:email)

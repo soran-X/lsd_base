@@ -1,0 +1,62 @@
+<%# Pagy navigation partial — used by books/index and any other paginated list %>
+<div class="flex items-center justify-between px-2 py-4">
+  <p class="text-sm text-gray-500">
+    Showing
+    <span class="font-medium"><%= pagy.from %></span>–<span class="font-medium"><%= pagy.to %></span>
+    of <span class="font-medium"><%= pagy.count %></span>
+  </p>
+
+  <nav class="flex items-center gap-1" aria-label="Pagination">
+    <%# First %>
+    <% if pagy.page > 1 %>
+      <%= link_to "«", pagy.page_url(1),
+            class: "px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition" %>
+    <% else %>
+      <span class="px-3 py-1.5 text-sm rounded-lg border border-gray-100 text-gray-300 cursor-default">«</span>
+    <% end %>
+
+    <%# Prev %>
+    <% if pagy.previous %>
+      <%= link_to "‹", pagy.page_url(pagy.previous),
+            class: "px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition" %>
+    <% else %>
+      <span class="px-3 py-1.5 text-sm rounded-lg border border-gray-100 text-gray-300 cursor-default">‹</span>
+    <% end %>
+
+    <%# Page window: always show first, last, current ±2, with … gaps %>
+    <% window = ([ pagy.page - 2, 1 ].max..[ pagy.page + 2, pagy.pages ].min).to_a
+       show_left_gap  = window.first > 2
+       show_right_gap = window.last  < pagy.pages - 1
+       pages = ([1] + (show_left_gap ? [] : [2]) + window + (show_right_gap ? [] : [pagy.pages - 1]) + [pagy.pages]).uniq.sort
+    %>
+    <% prev_p = nil %>
+    <% pages.each do |p| %>
+      <% if prev_p && p - prev_p > 1 %>
+        <span class="px-2 text-gray-400">…</span>
+      <% end %>
+      <% if p == pagy.page %>
+        <span class="px-3 py-1.5 text-sm rounded-lg border font-semibold text-white" style="background-color: var(--color-primary); border-color: var(--color-primary)"><%= p %></span>
+      <% else %>
+        <%= link_to p, pagy.page_url(p),
+              class: "px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition" %>
+      <% end %>
+      <% prev_p = p %>
+    <% end %>
+
+    <%# Next %>
+    <% if pagy.next %>
+      <%= link_to "›", pagy.page_url(pagy.next),
+            class: "px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition" %>
+    <% else %>
+      <span class="px-3 py-1.5 text-sm rounded-lg border border-gray-100 text-gray-300 cursor-default">›</span>
+    <% end %>
+
+    <%# Last %>
+    <% if pagy.page < pagy.pages %>
+      <%= link_to "»", pagy.page_url(pagy.pages),
+            class: "px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition" %>
+    <% else %>
+      <span class="px-3 py-1.5 text-sm rounded-lg border border-gray-100 text-gray-300 cursor-default">»</span>
+    <% end %>
+  </nav>
+</div>

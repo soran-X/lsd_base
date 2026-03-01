@@ -23,52 +23,117 @@
   <%# ── Left: details ──────────────────────────────────────────────────── %>
   <div class="lg:col-span-2 space-y-5">
 
+    <%# Primary Info -%>
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200">
-        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact Details</p>
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Primary Info</p>
       </div>
       <dl class="divide-y divide-gray-100 px-5">
+        <% if @contact.email.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Email</dt>
+            <dd class="col-span-2 text-sm">
+              <%= mail_to @contact.email, @contact.email, class: "text-indigo-600 hover:underline break-all" %>
+            </dd>
+          </div>
+        <% end %>
+        <% if @contact.assistant_name.present? %>
+          <div class="py-3 grid grid-cols-3 gap-4">
+            <dt class="text-sm font-medium text-gray-500">Assistant</dt>
+            <dd class="col-span-2 text-sm text-gray-800"><%= @contact.assistant_name %></dd>
+          </div>
+        <% end %>
         <% if @contact.companies.any? %>
           <div class="py-3 grid grid-cols-3 gap-4">
             <dt class="text-sm font-medium text-gray-500">Companies</dt>
-            <dd class="col-span-2 text-sm text-gray-800 flex flex-wrap gap-1">
+            <dd class="col-span-2 text-sm flex flex-wrap gap-x-3 gap-y-1">
               <% @contact.companies.each do |c| %>
                 <%= link_to c.name, company_path(c), class: "text-indigo-600 hover:underline" %>
               <% end %>
             </dd>
           </div>
         <% end %>
-
-        <% if @contact.email.present? %>
-          <div class="py-3 grid grid-cols-3 gap-4">
-            <dt class="text-sm font-medium text-gray-500">Email</dt>
-            <dd class="col-span-2 text-sm">
-              <%= mail_to @contact.email, @contact.email,
-                    class: "text-indigo-600 hover:underline break-all" %>
-            </dd>
-          </div>
-        <% end %>
-
-        <% if @contact.phone.present? %>
-          <div class="py-3 grid grid-cols-3 gap-4">
-            <dt class="text-sm font-medium text-gray-500">Phone</dt>
-            <dd class="col-span-2 text-sm text-gray-800"><%= @contact.phone %></dd>
-          </div>
-        <% end %>
       </dl>
     </div>
 
-    <% if @contact.notes.present? %>
+    <%# Contact Info -%>
+    <%
+      has_address = [@contact.address_line_1, @contact.city, @contact.country].any?(&:present?)
+      has_phones  = [@contact.phone, @contact.direct_number, @contact.mobile_number,
+                     @contact.home_number, @contact.fax_number].any?(&:present?)
+    %>
+    <% if has_address || has_phones %>
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200">
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notes</p>
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact Info</p>
         </div>
-        <div class="p-5 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
-          <%= @contact.notes %>
+        <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+          <%# Address -%>
+          <% if has_address %>
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Address</p>
+              <address class="text-sm text-gray-800 not-italic leading-relaxed">
+                <% [@contact.address_line_1, @contact.address_line_2].each do |line| %>
+                  <% if line.present? %><span class="block"><%= line %></span><% end %>
+                <% end %>
+                <% city_line = [@contact.city, @contact.state, @contact.zip].compact_blank.join(", ") %>
+                <% if city_line.present? %><span class="block"><%= city_line %></span><% end %>
+                <% if @contact.country.present? %><span class="block"><%= @contact.country %></span><% end %>
+              </address>
+            </div>
+          <% end %>
+
+          <%# Phones -%>
+          <% if has_phones %>
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Phone Numbers</p>
+              <dl class="space-y-1.5">
+                <% {
+                  "Main"   => @contact.phone,
+                  "Direct" => @contact.direct_number,
+                  "Mobile" => @contact.mobile_number,
+                  "Home"   => @contact.home_number,
+                  "Fax"    => @contact.fax_number
+                }.each do |label, number| %>
+                  <% if number.present? %>
+                    <div class="flex items-center gap-2 text-sm">
+                      <dt class="text-gray-400 w-14 shrink-0"><%= label %></dt>
+                      <dd class="text-gray-800"><%= number %></dd>
+                    </div>
+                  <% end %>
+                <% end %>
+              </dl>
+            </div>
+          <% end %>
+
         </div>
       </div>
     <% end %>
 
+    <%# Notes -%>
+    <% if @contact.notes.present? || @contact.tracked_by.present? %>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200">
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notes</p>
+        </div>
+        <div class="divide-y divide-gray-100">
+          <% if @contact.notes.present? %>
+            <div class="px-5 py-4 text-sm text-gray-800 leading-relaxed trix-content">
+              <%= trix_sanitize @contact.notes %>
+            </div>
+          <% end %>
+          <% if @contact.tracked_by.present? %>
+            <div class="px-5 py-3 grid grid-cols-3 gap-4">
+              <dt class="text-sm font-medium text-gray-500">Tracked By</dt>
+              <dd class="col-span-2 text-sm text-gray-800"><%= @contact.tracked_by.display_name %></dd>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Books -%>
     <% if @contact.books.any? %>
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="bg-gray-50 px-5 py-2.5 border-b border-gray-200">

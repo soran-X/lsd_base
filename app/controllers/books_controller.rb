@@ -17,13 +17,14 @@ class BooksController < ApplicationController
     if @query.present?
       scope = Book.kept
       scope = scope.where(confidential: false) unless Current.user.hierarchy_level >= 50
-      @books = scope.search_globally(@query)
-                    .includes(@catalog_view ? catalog_includes : table_includes)
-    else
-      @books = Book.kept
+      scope = scope.search_globally(@query)
                    .includes(@catalog_view ? catalog_includes : table_includes)
-                   .order(updated_at: :desc)
+    else
+      scope = Book.kept
+                  .includes(@catalog_view ? catalog_includes : table_includes)
+                  .order(updated_at: :desc)
     end
+    @pagy, @books = pagy(scope)
   end
 
   # GET /books/1
@@ -38,7 +39,8 @@ class BooksController < ApplicationController
                            { client_activities: [:company, :contact] },
                            { film_activities:   [:company] },
                            { book_companies:    :company },
-                           { book_contacts:     :contact })
+                           { book_contacts:     :contact },
+                           { readers_reports:   [:reader, :reading_material] })
                 .find(params.expect(:id))
     history_min_level = case SiteSetting["book_history_visibility"]
                         when "admin" then 50
@@ -192,6 +194,7 @@ class BooksController < ApplicationController
         :confidential, :status,
         :lead_title, :tracking_material,
         :readers_report, :material_to_read,
+        :confidential_report,
         :primary_scout_id, :secondary_scout_id,
         :rights_sold, :log_line, :pub_info, :material,
         :confidential_material, :update_tagline,
@@ -218,6 +221,12 @@ class BooksController < ApplicationController
         ],
         archive_notes_attributes: [
           [:id, :note, :date, :_destroy]
+        ],
+        readers_reports_attributes: [
+          [:id, :report_date, :reader_id, :sent_to,
+           :comments, :film_commentary, :synopsis,
+           :publishing_recommended, :publishing_recommendation,
+           :film_recommended, :reading_material_id, :_destroy]
         ]
       ]
     )

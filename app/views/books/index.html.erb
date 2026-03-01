@@ -40,8 +40,8 @@
             d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
     </svg>
     <span>
-      <strong><%= @books.size %></strong>
-      <%= @books.size == 1 ? "result" : "results" %> for
+      <strong><%= @pagy.count %></strong>
+      <%= @pagy.count == 1 ? "result" : "results" %> for
       <em class="font-medium text-gray-800">"<%= @query %>"</em>
       — sorted by relevance
     </span>
@@ -52,6 +52,7 @@
 <% if @catalog_view %>
 
   <%# ── Catalog view ────────────────────────────────────────────────────── %>
+  <%= render "pagy_nav", pagy: @pagy if @pagy.pages > 1 %>
   <div class="flex flex-col gap-2">
     <% @books.each do |book| %>
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -71,9 +72,12 @@
     <% end %>
   </div>
 
+  <%= render "pagy_nav", pagy: @pagy if @pagy.pages > 1 %>
+
 <% else %>
 
   <%# ── Table view ──────────────────────────────────────────────────────── %>
+  <%= render "pagy_nav", pagy: @pagy if @pagy.pages > 1 %>
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
     <table class="w-full divide-y divide-gray-200">
       <thead class="bg-gray-50">
@@ -174,5 +178,7 @@
       </tbody>
     </table>
   </div>
+
+  <%= render "pagy_nav", pagy: @pagy if @pagy.pages > 1 %>
 
 <% end %>

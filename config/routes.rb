@@ -47,6 +47,7 @@ Rails.application.routes.draw do
 
   # Admin resources
   resources :users, only: %i[index show new create edit update destroy] do
+    collection { get :search, defaults: { format: :json } }
     resource :approval, only: %i[update], controller: "approvals"
   end
   resources :roles
@@ -67,6 +68,7 @@ Rails.application.routes.draw do
 
   # Scaffolded content resources
   resources :books
+  resources :book_searches, only: %i[index new create show destroy]
   resources :authors do
     collection { get :search, defaults: { format: :json } }
   end

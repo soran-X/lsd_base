@@ -13,5 +13,3 @@ function patchTrixLinks() {
 
 document.addEventListener("turbo:load",   patchTrixLinks)
 document.addEventListener("turbo:render", patchTrixLinks)
-
-

@@ -9,6 +9,7 @@ class Contact < ApplicationRecord
              trigram: { word_similarity: true } }
 
   # ── Associations ──────────────────────────────────────────────────────────
+  belongs_to :tracked_by, class_name: "User", optional: true
   has_many :contact_companies, dependent: :destroy
   has_many :companies, through: :contact_companies
   has_many :book_contacts, dependent: :destroy

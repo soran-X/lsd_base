@@ -645,14 +645,91 @@
 
   </div>
   <%# ── Tab: Reader’s Report ────────────────────────────────────────────────── %>
-  <div data-tab-target="panel" data-tab="report" class="hidden px-6 py-6">
-    <% if @book.readers_report.present? %>
-      <div class="text-sm text-gray-800 leading-relaxed trix-content prose prose-sm max-w-none">
-        <%= trix_sanitize @book.readers_report %>
+  <div data-tab-target="panel" data-tab="report" class="hidden px-6 py-6 space-y-4">
+
+    <%# Section header with confidential badge %>
+    <div class="flex items-center justify-between pb-3 border-b border-gray-200">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Reader’s Reports</p>
+      <% if @book.confidential_report? %>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+          Confidential
+        </span>
+      <% end %>
+    </div>
+
+    <% if @book.readers_reports.any? %>
+      <div class="space-y-4">
+        <% @book.readers_reports.each do |rr| %>
+          <div class="rounded-lg border border-gray-200 overflow-hidden">
+
+            <%# Header row %>
+            <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 flex flex-wrap items-center gap-4 text-xs text-gray-600">
+              <% if rr.report_date.present? %>
+                <span class="font-medium text-gray-700"><%= rr.report_date.strftime("%b %-d, %Y") %></span>
+              <% end %>
+              <% if rr.reader.present? %>
+                <span>Reader: <strong class="font-medium text-gray-800"><%= rr.reader.display_name %></strong></span>
+              <% end %>
+              <% if rr.sent_to.present? %>
+                <span>Sent to: <strong class="font-medium text-gray-800"><%= rr.sent_to %></strong></span>
+              <% end %>
+              <% if rr.reading_material.present? %>
+                <span>Material: <strong class="font-medium text-gray-800"><%= strip_tags(rr.reading_material.material.to_s).squish.presence || "(unlabelled)" %></strong></span>
+              <% end %>
+            </div>
+
+            <div class="p-4 space-y-3">
+
+              <%# Recommendation badges %>
+              <div class="flex flex-wrap gap-3 text-xs">
+                <% if rr.publishing_recommended.present? %>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                    Publishing: <%= rr.publishing_recommended.capitalize %>
+                  </span>
+                <% end %>
+                <% if rr.film_recommended.present? %>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">
+                    Film: <%= rr.film_recommended.capitalize %>
+                  </span>
+                <% end %>
+              </div>
+
+              <% if rr.publishing_recommendation.present? %>
+                <div>
+                  <p class="text-xs font-medium text-gray-500 mb-1">Publishing Recommendation</p>
+                  <div class="text-sm text-gray-800 leading-relaxed trix-content"><%= trix_sanitize rr.publishing_recommendation %></div>
+                </div>
+              <% end %>
+
+              <% if rr.comments.present? %>
+                <div>
+                  <p class="text-xs font-medium text-gray-500 mb-1">Comments</p>
+                  <div class="text-sm text-gray-800 leading-relaxed trix-content"><%= trix_sanitize rr.comments %></div>
+                </div>
+              <% end %>
+
+              <% if rr.film_commentary.present? %>
+                <div>
+                  <p class="text-xs font-medium text-gray-500 mb-1">Film Commentary</p>
+                  <div class="text-sm text-gray-800 leading-relaxed trix-content"><%= trix_sanitize rr.film_commentary %></div>
+                </div>
+              <% end %>
+
+              <% if rr.synopsis.present? %>
+                <div>
+                  <p class="text-xs font-medium text-gray-500 mb-1">Synopsis</p>
+                  <div class="text-sm text-gray-800 leading-relaxed trix-content"><%= trix_sanitize rr.synopsis %></div>
+                </div>
+              <% end %>
+
+            </div>
+          </div>
+        <% end %>
       </div>
     <% else %>
-      <p class="text-sm text-gray-400 italic py-8 text-center">No reader's report on file.</p>
+      <p class="text-sm text-gray-400 italic py-8 text-center">No reader’s reports on file.</p>
     <% end %>
+
   </div>
 
 </div>

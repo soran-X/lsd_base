@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   include Authorizable
+  include Pagy::Method
 
   allow_browser versions: :modern
 

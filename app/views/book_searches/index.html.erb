@@ -1,0 +1,60 @@
+<% content_for :title, "Saved Searches" %>
+
+<div class="max-w-4xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Saved Searches</h1>
+    <%= link_to "New Search", new_book_search_path,
+          class: "px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg
+                  hover:bg-indigo-700 transition-colors" %>
+  </div>
+
+  <% if @book_searches.any? %>
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-100 bg-gray-50">
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">Saved</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-600">Summary</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <% @book_searches.each do |bs| %>
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-4 py-3 text-gray-400 whitespace-nowrap">
+                <%= bs.created_at.strftime("%b %-d, %Y") %>
+              </td>
+              <td class="px-4 py-3 text-gray-600 max-w-xs">
+                <% summary_parts = [] %>
+                <% summary_parts << "\"#{bs.params['keyword']}\"" if bs.params["keyword"].present? %>
+                <% summary_parts << "Status: #{Array(bs.params['status']).join(', ')}" if Array(bs.params['status']).any? %>
+                <% summary_parts << "#{Array(bs.params['genre_ids']).size} genre(s)" if Array(bs.params['genre_ids']).any? %>
+                <% if summary_parts.empty? %>
+                  <span class="italic text-gray-400">No summary</span>
+                <% else %>
+                  <%= summary_parts.join(" · ").truncate(80) %>
+                <% end %>
+              </td>
+              <td class="px-4 py-3 text-right whitespace-nowrap">
+                <%= link_to "Re-run", book_search_path(bs),
+                      class: "text-indigo-600 hover:text-indigo-800 transition-colors mr-3" %>
+                <%= button_to book_search_path(bs), method: :delete,
+                      data: { action: "click->confirm#open", confirm_message: "Delete this saved search?" },
+                      class: "text-red-400 hover:text-red-600 transition-colors bg-transparent border-0
+                              p-0 cursor-pointer text-sm" do %>
+                  Delete
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-400">
+      No saved searches yet.
+      <%= link_to "Create your first search", new_book_search_path,
+            class: "text-indigo-600 hover:text-indigo-800 transition-colors" %>.
+    </div>
+  <% end %>
+</div>

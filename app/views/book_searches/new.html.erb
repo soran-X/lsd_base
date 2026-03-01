@@ -1,0 +1,29 @@
+<% content_for :title, "Advanced Search" %>
+
+<div class="max-w-6xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Advanced Search</h1>
+    <%= link_to "Saved Searches", book_searches_path,
+          class: "text-sm text-indigo-600 hover:text-indigo-800 transition-colors" %>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+    <%= render "form",
+          book_search:         @book_search,
+          genres:              @genres,
+          sub_genres:          @sub_genres,
+          client_types:        @client_types,
+          saved_authors:       [],
+          saved_scouts:        [],
+          saved_readers:       [],
+          saved_agencies:      [],
+          saved_film_agencies: [],
+          saved_publishers:    [],
+          saved_editors:       [],
+          saved_rights_holders: [],
+          saved_agents:        [],
+          saved_film_agents:   [],
+          saved_ca_companies:  [],
+          saved_ca_contacts:   [] %>
+  </div>
+</div>

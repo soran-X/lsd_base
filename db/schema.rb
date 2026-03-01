@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_01_100013) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_02_100005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -140,6 +140,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100013) do
     t.index ["book_id"], name: "index_book_memos_on_book_id"
   end
 
+  create_table "book_searches", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.jsonb "params", default: {}, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "created_at"], name: "index_book_searches_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_book_searches_on_user_id"
+  end
+
   create_table "book_sub_genres", force: :cascade do |t|
     t.bigint "book_id", null: false
     t.datetime "created_at", null: false
@@ -161,6 +171,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100013) do
   create_table "books", force: :cascade do |t|
     t.boolean "confidential", default: false, null: false
     t.boolean "confidential_material", default: false, null: false
+    t.boolean "confidential_report", default: false, null: false
     t.datetime "created_at", null: false
     t.date "delivery_date"
     t.datetime "discarded_at"
@@ -168,16 +179,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100013) do
     t.bigint "last_updated_by_id"
     t.boolean "lead_title", default: false, null: false
     t.text "log_line"
+    t.text "log_line_plain"
     t.text "material"
+    t.text "material_plain"
     t.boolean "material_to_read", default: false, null: false
     t.text "notes"
+    t.text "notes_plain"
     t.string "old_title"
     t.bigint "primary_scout_id"
     t.text "pub_info"
+    t.text "pub_info_plain"
     t.string "publication_season"
     t.integer "publication_year"
     t.text "readers_report"
     t.text "rights_sold"
+    t.text "rights_sold_plain"
     t.bigint "secondary_scout_id"
     t.integer "status", default: 0, null: false
     t.string "subtitle"
@@ -190,8 +206,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100013) do
     t.index ["confidential"], name: "index_books_on_confidential"
     t.index ["discarded_at"], name: "index_books_on_discarded_at"
     t.index ["last_updated_by_id"], name: "index_books_on_last_updated_by_id"
+    t.index ["log_line_plain"], name: "index_books_on_log_line_plain_trgm", opclass: :gin_trgm_ops, using: :gin
+    t.index ["material_plain"], name: "index_books_on_material_plain_trgm", opclass: :gin_trgm_ops, using: :gin
+    t.index ["notes_plain"], name: "index_books_on_notes_plain_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["primary_scout_id"], name: "index_books_on_primary_scout_id"
+    t.index ["pub_info_plain"], name: "index_books_on_pub_info_plain_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["publication_year"], name: "index_books_on_publication_year"
+    t.index ["rights_sold_plain"], name: "index_books_on_rights_sold_plain_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["secondary_scout_id"], name: "index_books_on_secondary_scout_id"
     t.index ["status"], name: "index_books_on_status"
     t.index ["synopsis_plain"], name: "index_books_on_synopsis_plain_trgm", opclass: :gin_trgm_ops, using: :gin
@@ -270,17 +291,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100013) do
   end
 
   create_table "contacts", force: :cascade do |t|
+    t.string "address_line_1"
+    t.string "address_line_2"
+    t.string "assistant_name"
+    t.string "city"
+    t.string "country"
     t.datetime "created_at", null: false
+    t.string "direct_number"
     t.datetime "discarded_at"
     t.string "email"
+    t.string "fax_number"
     t.string "first_name", null: false
+    t.string "home_number"
     t.string "last_name", null: false
+    t.string "mobile_number"
     t.text "notes"
     t.string "phone"
+    t.string "state"
     t.string "title"
+    t.bigint "tracked_by_id"
     t.datetime "updated_at", null: false
+    t.string "zip"
     t.index ["discarded_at"], name: "index_contacts_on_discarded_at"
     t.index ["last_name", "first_name"], name: "index_contacts_on_last_name_and_first_name"
+    t.index ["tracked_by_id"], name: "index_contacts_on_tracked_by_id"
   end
 
   create_table "conversations", force: :cascade do |t|
@@ -361,6 +395,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100013) do
     t.string "resource", null: false
     t.datetime "updated_at", null: false
     t.index ["resource", "action"], name: "index_permissions_on_resource_and_action", unique: true
+  end
+
+  create_table "readers_reports", force: :cascade do |t|
+    t.bigint "book_id", null: false
+    t.text "comments"
+    t.datetime "created_at", null: false
+    t.text "film_commentary"
+    t.integer "film_recommended"
+    t.text "publishing_recommendation"
+    t.integer "publishing_recommended"
+    t.bigint "reader_id"
+    t.bigint "reading_material_id"
+    t.date "report_date"
+    t.string "sent_to"
+    t.text "synopsis"
+    t.datetime "updated_at", null: false
+    t.index ["book_id"], name: "index_readers_reports_on_book_id"
+    t.index ["reader_id"], name: "index_readers_reports_on_reader_id"
+    t.index ["reading_material_id"], name: "index_readers_reports_on_reading_material_id"
   end
 
   create_table "reading_materials", force: :cascade do |t|
@@ -470,6 +523,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100013) do
   add_foreign_key "book_genres", "books"
   add_foreign_key "book_genres", "genres"
   add_foreign_key "book_memos", "books"
+  add_foreign_key "book_searches", "users"
   add_foreign_key "book_sub_genres", "books"
   add_foreign_key "book_sub_genres", "sub_genres"
   add_foreign_key "book_updates", "books"
@@ -483,6 +537,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100013) do
   add_foreign_key "company_subagents", "territories"
   add_foreign_key "contact_companies", "companies"
   add_foreign_key "contact_companies", "contacts"
+  add_foreign_key "contacts", "users", column: "tracked_by_id"
   add_foreign_key "conversations", "users"
   add_foreign_key "film_activities", "books"
   add_foreign_key "film_activities", "companies"
@@ -491,6 +546,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100013) do
   add_foreign_key "film_trackings", "books"
   add_foreign_key "messages", "conversations"
   add_foreign_key "messages", "users"
+  add_foreign_key "readers_reports", "books"
+  add_foreign_key "readers_reports", "reading_materials"
+  add_foreign_key "readers_reports", "users", column: "reader_id"
   add_foreign_key "reading_materials", "books"
   add_foreign_key "recovery_codes", "users"
   add_foreign_key "role_permissions", "permissions"
