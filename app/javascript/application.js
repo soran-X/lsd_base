@@ -10,5 +10,8 @@ function patchTrixLinks() {
     a.rel    = "noopener noreferrer"
   })
 }
+
 document.addEventListener("turbo:load",   patchTrixLinks)
 document.addEventListener("turbo:render", patchTrixLinks)
+
+

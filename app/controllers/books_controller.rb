@@ -29,11 +29,16 @@ class BooksController < ApplicationController
   # GET /books/1
   def show
     @book = Book.kept
-                .includes(:credited_authors, :translators, :film_tracking,
+                .includes(:credited_authors, :translators,
+                           { film_tracking: :film_genres },
                            :primary_scout, :secondary_scout, :genres, :sub_genres,
                            :client_types, :last_updated_by,
                            :reading_materials, :book_memos, :archive_notes,
-                           { client_activities: [:company, :contact] })
+                           :book_updates,
+                           { client_activities: [:company, :contact] },
+                           { film_activities:   [:company] },
+                           { book_companies:    :company },
+                           { book_contacts:     :contact })
                 .find(params.expect(:id))
     history_min_level = case SiteSetting["book_history_visibility"]
                         when "admin" then 50
@@ -43,7 +48,7 @@ class BooksController < ApplicationController
     if Current.user.hierarchy_level >= history_min_level
       @recent_updates = AuditLog.where(resource_type: "Book", resource_id: @book.id)
                                  .order(created_at: :desc)
-                                 .limit(3)
+                                 .limit(10)
                                  .includes(:user)
     else
       @recent_updates = []
@@ -100,7 +105,8 @@ class BooksController < ApplicationController
         # them below only if the stripped text content actually differs.
         changes = @book.previous_changes.except(
           "updated_at", "synopsis_plain", "last_updated_by_id", "created_at",
-          "synopsis", "notes", "readers_report", "material_to_read"
+          "synopsis", "notes", "readers_report", "material_to_read",
+          "rights_sold", "log_line", "pub_info", "material"
         )
 
         # ── Rich-text fields: only log when text content changed ────────────
@@ -187,10 +193,19 @@ class BooksController < ApplicationController
         :lead_title, :tracking_material,
         :readers_report, :material_to_read,
         :primary_scout_id, :secondary_scout_id,
+        :rights_sold, :log_line, :pub_info, :material,
+        :confidential_material, :update_tagline,
+        book_updates_attributes: [
+          [:id, :content, :_destroy]
+        ],
         genre_ids: [], sub_genre_ids: [], client_type_ids: [],
+        film_activities_attributes: [
+          [:id, :date, :client, :company_id, :notes, :_destroy]
+        ],
         film_tracking_attributes: [
-          :id, :film_synopsis, :film_option,
-          :readers_thoughts, :category, :_destroy
+          :id, :film_synopsis, :film_option, :film_option_date,
+          :readers_thoughts, :category, :comments, :material,
+          :off, :pub_buzz, :_destroy
         ],
         reading_materials_attributes: [
           [:id, :material, :reader, :number_of_pages, :date, :_destroy]
@@ -249,6 +264,20 @@ class BooksController < ApplicationController
       Array(params.dig(:book, :agent_contact_ids)).compact_blank.map(&:to_i))
     assign_multi_book_contact(book, :film_agent,
       Array(params.dig(:book, :film_agent_contact_ids)).compact_blank.map(&:to_i))
+
+    # Rights
+    assign_single_book_company(book, :rights_holder, params.dig(:book, :rights_holder_company_id))
+    assign_multi_book_company(book, :secondary_rights_holder,
+      Array(params.dig(:book, :secondary_rights_holder_company_ids)).compact_blank.map(&:to_i))
+
+    # Film genres (via film_tracking)
+    if book.film_tracking
+      film_genre_ids = Array(params.dig(:book, :film_genre_ids)).compact_blank.map(&:to_i)
+      ft = book.film_tracking
+      ft.film_tracking_genres.where.not(film_genre_id: film_genre_ids).destroy_all
+      existing_ids = ft.film_tracking_genres.pluck(:film_genre_id)
+      (film_genre_ids - existing_ids).each { |gid| ft.film_tracking_genres.create!(film_genre_id: gid) }
+    end
   end
 
   def assign_single_book_company(book, role, company_id)

@@ -33,15 +33,32 @@ module BookNestedAudit
 
       details = dirty.map { |k, v|
         before, after = v
-        # strip HTML for text fields such as notes or material
+        label = k.end_with?("_id") ? k.delete_suffix("_id").humanize : k.humanize
         if %w[note material content].include?(k)
-          before = strip_to_plain(before)
-          after  = strip_to_plain(after)
+          before = strip_to_plain(before).presence || "blank"
+          after  = strip_to_plain(after).presence  || "blank"
+        elsif k.end_with?("_id")
+          before = resolve_audit_id(k, before)
+          after  = resolve_audit_id(k, after)
+        else
+          before = before.to_s.presence || "blank"
+          after  = after.to_s.presence  || "blank"
         end
-        "#{k}: #{before.inspect} → #{after.inspect}"
+        "#{label}: #{before} → #{after}"
       }.join("; ")
 
       record_audit("~ #{details}")
+    end
+
+    def resolve_audit_id(field, id)
+      return "blank" if id.nil?
+      name = case field
+             when "contact_id" then Contact.find_by(id: id)&.display_name
+             when "company_id" then Company.find_by(id: id)&.name
+             when "user_id"    then User.find_by(id: id)&.display_name
+             else nil
+             end
+      name || id.to_s
     end
 
     def audit_book_child_destroy

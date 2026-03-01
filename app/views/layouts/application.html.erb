@@ -219,6 +219,16 @@
               <span class="sidebar-label truncate">Subgenres</span>
             <% end %>
 
+            <%= link_to film_genres_path,
+                  class: nav_link_class(request.path.start_with?(film_genres_path)),
+                  title: "Film Genres" do %>
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+              </svg>
+              <span class="sidebar-label truncate">Film Genres</span>
+            <% end %>
+
             <%= link_to client_types_path,
                   class: nav_link_class(request.path.start_with?(client_types_path)),
                   title: "Client Types" do %>

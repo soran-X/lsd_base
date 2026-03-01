@@ -85,11 +85,23 @@ module ApplicationHelper
     audit_skip_fields.include?(field)
   end
 
+  # Map field names to the model class and display method for ID resolution.
+  AUDIT_ID_RESOLVERS = {
+    "last_updated_by_id" => ->(id) { User.find_by(id: id)&.display_name },
+    "primary_scout_id"   => ->(id) { User.find_by(id: id)&.display_name },
+    "secondary_scout_id" => ->(id) { User.find_by(id: id)&.display_name },
+    "contact_id"         => ->(id) { Contact.find_by(id: id)&.display_name },
+    "company_id"         => ->(id) { Company.find_by(id: id)&.name },
+  }.freeze
+
   def format_audit_value(field, value)
-    return "—" if value.nil?
+    return "—" if value.nil? || value.to_s.empty?
     return "[content updated]" if AUDIT_RICH_TEXT_FIELDS.include?(field) || field.end_with?("_html", "_plain")
     return(value ? "Yes" : "No") if audit_boolean_fields.include?(field)
-    return value.to_s                if AUDIT_PLAIN_FIELDS.include?(field)
+    return value.to_s if AUDIT_PLAIN_FIELDS.include?(field)
+    if (resolver = AUDIT_ID_RESOLVERS[field])
+      return resolver.call(value.to_i)&.truncate(80) || value.to_s
+    end
     value.to_s.humanize.truncate(80)
   end
 

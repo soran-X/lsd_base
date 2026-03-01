@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_01_100003) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_01_100013) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -150,21 +150,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100003) do
     t.index ["sub_genre_id"], name: "index_book_sub_genres_on_sub_genre_id"
   end
 
+  create_table "book_updates", force: :cascade do |t|
+    t.bigint "book_id", null: false
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["book_id"], name: "index_book_updates_on_book_id"
+  end
+
   create_table "books", force: :cascade do |t|
     t.boolean "confidential", default: false, null: false
+    t.boolean "confidential_material", default: false, null: false
     t.datetime "created_at", null: false
     t.date "delivery_date"
     t.datetime "discarded_at"
     t.date "followup_date"
     t.bigint "last_updated_by_id"
     t.boolean "lead_title", default: false, null: false
+    t.text "log_line"
+    t.text "material"
     t.boolean "material_to_read", default: false, null: false
     t.text "notes"
     t.string "old_title"
     t.bigint "primary_scout_id"
+    t.text "pub_info"
     t.string "publication_season"
     t.integer "publication_year"
     t.text "readers_report"
+    t.text "rights_sold"
     t.bigint "secondary_scout_id"
     t.integer "status", default: 0, null: false
     t.string "subtitle"
@@ -172,6 +185,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100003) do
     t.text "synopsis_plain"
     t.string "title"
     t.boolean "tracking_material", default: false, null: false
+    t.string "update_tagline"
     t.datetime "updated_at", null: false
     t.index ["confidential"], name: "index_books_on_confidential"
     t.index ["discarded_at"], name: "index_books_on_discarded_at"
@@ -277,12 +291,47 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100003) do
     t.index ["user_id"], name: "index_conversations_on_user_id"
   end
 
+  create_table "film_activities", force: :cascade do |t|
+    t.bigint "book_id", null: false
+    t.string "client"
+    t.bigint "company_id"
+    t.datetime "created_at", null: false
+    t.date "date"
+    t.text "notes"
+    t.datetime "updated_at", null: false
+    t.index ["book_id"], name: "index_film_activities_on_book_id"
+    t.index ["company_id"], name: "index_film_activities_on_company_id"
+  end
+
+  create_table "film_genres", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_film_genres_on_name", unique: true
+    t.index ["name"], name: "index_film_genres_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
+  end
+
+  create_table "film_tracking_genres", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "film_genre_id", null: false
+    t.bigint "film_tracking_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["film_genre_id"], name: "index_film_tracking_genres_on_film_genre_id"
+    t.index ["film_tracking_id", "film_genre_id"], name: "index_film_tracking_genres_unique", unique: true
+    t.index ["film_tracking_id"], name: "index_film_tracking_genres_on_film_tracking_id"
+  end
+
   create_table "film_trackings", force: :cascade do |t|
     t.bigint "book_id", null: false
     t.string "category"
+    t.text "comments"
     t.datetime "created_at", null: false
-    t.string "film_option"
+    t.text "film_option"
+    t.date "film_option_date"
     t.text "film_synopsis"
+    t.text "material"
+    t.boolean "off", default: false, null: false
+    t.boolean "pub_buzz", default: false, null: false
     t.text "readers_thoughts"
     t.datetime "updated_at", null: false
     t.index ["book_id"], name: "index_film_trackings_on_book_id", unique: true
@@ -423,6 +472,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100003) do
   add_foreign_key "book_memos", "books"
   add_foreign_key "book_sub_genres", "books"
   add_foreign_key "book_sub_genres", "sub_genres"
+  add_foreign_key "book_updates", "books"
   add_foreign_key "books", "users", column: "last_updated_by_id"
   add_foreign_key "books", "users", column: "primary_scout_id"
   add_foreign_key "books", "users", column: "secondary_scout_id"
@@ -434,6 +484,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_01_100003) do
   add_foreign_key "contact_companies", "companies"
   add_foreign_key "contact_companies", "contacts"
   add_foreign_key "conversations", "users"
+  add_foreign_key "film_activities", "books"
+  add_foreign_key "film_activities", "companies"
+  add_foreign_key "film_tracking_genres", "film_genres"
+  add_foreign_key "film_tracking_genres", "film_trackings"
   add_foreign_key "film_trackings", "books"
   add_foreign_key "messages", "conversations"
   add_foreign_key "messages", "users"

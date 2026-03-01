@@ -1,0 +1,317 @@
+<%# Partial representing the "Contacts & Rights" tab panel. %>
+<div data-tab-target="panel" data-tab="contacts_rights" class="px-6 py-6 space-y-6">
+
+  <%# Associated Companies & Contacts %>
+  <div class="rounded-lg border border-gray-200">
+    <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 rounded-t-lg">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Associated Companies &amp; Contacts</p>
+    </div>
+    <div class="p-4 space-y-5">
+
+      <%# Row 1: Publisher + Editor %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <%# Publisher — single company (Publisher type) %>
+        <div>
+          <p class="block text-xs font-medium text-gray-600 mb-1">Publisher</p>
+          <% publisher_bc = book.persisted? ? book.book_companies.find_by(role: BookCompany.roles[:publisher]) : nil %>
+          <div class="relative"
+               data-controller="company-combobox"
+               data-company-combobox-url-value="<%= search_companies_path(format: :json, type: 'Publisher') %>">
+            <input type="text"
+                   data-company-combobox-target="input"
+                   placeholder="Search publishers..."
+                   value="<%= publisher_bc&.company&.name %>"
+                   autocomplete="off"
+                   class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   data-action="input->company-combobox#search keydown->company-combobox#onKeydown" />
+            <input type="hidden"
+                   name="book[publisher_company_id]"
+                   value="<%= publisher_bc&.company_id %>"
+                   data-company-combobox-target="hiddenField" />
+            <div data-company-combobox-target="dropdown"
+                 class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                        border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <%# Editor — single company (any type) %>
+        <div>
+          <p class="block text-xs font-medium text-gray-600 mb-1">Editor</p>
+          <% editor_bc = book.persisted? ? book.book_companies.find_by(role: BookCompany.roles[:editor]) : nil %>
+          <div class="relative"
+               data-controller="company-combobox"
+               data-company-combobox-url-value="<%= search_companies_path(format: :json) %>">
+            <input type="text"
+                   data-company-combobox-target="input"
+                   placeholder="Search companies..."
+                   value="<%= editor_bc&.company&.name %>"
+                   autocomplete="off"
+                   class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   data-action="input->company-combobox#search keydown->company-combobox#onKeydown" />
+            <input type="hidden"
+                   name="book[editor_company_id]"
+                   value="<%= editor_bc&.company_id %>"
+                   data-company-combobox-target="hiddenField" />
+            <div data-company-combobox-target="dropdown"
+                 class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                        border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <%# Row 2: Agent(s) + Agency(ies) %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <%# Agent(s) — multi contact %>
+        <% agent_contacts = book.persisted? ? book.book_contacts.where(role: BookContact.roles[:agent]).includes(:contact).map { |bc| { id: bc.contact_id, label: bc.contact.display_name } } : [] %>
+        <div data-controller="contact-chips"
+             data-contact-chips-search-url-value="<%= search_contacts_path(format: :json) %>"
+             data-contact-chips-field-name-value="book[agent_contact_ids][]">
+          <p class="block text-xs font-medium text-gray-600 mb-1">Agent(s)</p>
+          <div data-contact-chips-target="chips" class="flex flex-wrap gap-1.5 mb-2 min-h-[2rem]">
+            <% agent_contacts.each do |c| %>
+              <div class="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full text-sm font-medium
+                          bg-violet-50 text-violet-800 border border-violet-200"
+                   data-contact-id="<%= c[:id] %>" data-contact-label="<%= c[:label] %>">
+                <span><%= c[:label] %></span>
+                <input type="hidden" name="book[agent_contact_ids][]" value="<%= c[:id] %>">
+                <button type="button" data-contact-id="<%= c[:id] %>"
+                        data-action="click->contact-chips#removeChip"
+                        class="rounded-full p-0.5 hover:bg-violet-200 text-violet-400 hover:text-violet-700 transition-colors">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-2.72 2.72a.75.75 0 101.06 1.06L10 11.06l2.72 2.72a.75.75 0 101.06-1.06L11.06 10l2.72-2.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                  </svg>
+                </button>
+              </div>
+            <% end %>
+          </div>
+          <div class="relative">
+            <input type="text"
+                   data-contact-chips-target="input"
+                   placeholder="Search contacts..."
+                   autocomplete="off"
+                   class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   data-action="input->contact-chips#onInput keydown->contact-chips#onKeydown" />
+            <div data-contact-chips-target="dropdown"
+                 class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                        border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+              <ul data-contact-chips-target="list" role="listbox"></ul>
+            </div>
+          </div>
+        </div>
+
+        <%# Agency(ies) — multi company %>
+        <% agency_companies = book.persisted? ? book.book_companies.where(role: BookCompany.roles[:agency]).includes(:company).map { |bc| { id: bc.company_id, label: bc.company.name } } : [] %>
+        <div data-controller="company-chips"
+             data-company-chips-search-url-value="<%= search_companies_path(format: :json) %>"
+             data-company-chips-field-name-value="book[agency_company_ids][]">
+          <p class="block text-xs font-medium text-gray-600 mb-1">Agency(ies)</p>
+          <div data-company-chips-target="chips" class="flex flex-wrap gap-1.5 mb-2 min-h-[2rem]">
+            <% agency_companies.each do |c| %>
+              <div class="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full text-sm font-medium
+                          bg-sky-50 text-sky-800 border border-sky-200"
+                   data-company-id="<%= c[:id] %>" data-company-label="<%= c[:label] %>">
+                <span><%= c[:label] %></span>
+                <input type="hidden" name="book[agency_company_ids][]" value="<%= c[:id] %>">
+                <button type="button" data-company-id="<%= c[:id] %>"
+                        data-action="click->company-chips#removeChip"
+                        class="rounded-full p-0.5 hover:bg-sky-200 text-sky-400 hover:text-sky-700 transition-colors">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-2.72 2.72a.75.75 0 101.06 1.06L10 11.06l2.72 2.72a.75.75 0 101.06-1.06L11.06 10l2.72-2.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                  </svg>
+                </button>
+              </div>
+            <% end %>
+          </div>
+          <div class="relative">
+            <input type="text"
+                   data-company-chips-target="input"
+                   placeholder="Search companies..."
+                   autocomplete="off"
+                   class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   data-action="input->company-chips#onInput keydown->company-chips#onKeydown" />
+            <div data-company-chips-target="dropdown"
+                 class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                        border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+              <ul data-company-chips-target="list" role="listbox"></ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <%# Row 3: Film Agent(s) + Film Agency(ies) %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <%# Film Agent(s) — multi contact %>
+        <% film_agent_contacts = book.persisted? ? book.book_contacts.where(role: BookContact.roles[:film_agent]).includes(:contact).map { |bc| { id: bc.contact_id, label: bc.contact.display_name } } : [] %>
+        <div data-controller="contact-chips"
+             data-contact-chips-search-url-value="<%= search_contacts_path(format: :json) %>"
+             data-contact-chips-field-name-value="book[film_agent_contact_ids][]">
+          <p class="block text-xs font-medium text-gray-600 mb-1">Film Agent(s)</p>
+          <div data-contact-chips-target="chips" class="flex flex-wrap gap-1.5 mb-2 min-h-[2rem]">
+            <% film_agent_contacts.each do |c| %>
+              <div class="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full text-sm font-medium
+                          bg-violet-50 text-violet-800 border border-violet-200"
+                   data-contact-id="<%= c[:id] %>" data-contact-label="<%= c[:label] %>">
+                <span><%= c[:label] %></span>
+                <input type="hidden" name="book[film_agent_contact_ids][]" value="<%= c[:id] %>">
+                <button type="button" data-contact-id="<%= c[:id] %>"
+                        data-action="click->contact-chips#removeChip"
+                        class="rounded-full p-0.5 hover:bg-violet-200 text-violet-400 hover:text-violet-700 transition-colors">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-2.72 2.72a.75.75 0 101.06 1.06L10 11.06l2.72 2.72a.75.75 0 101.06-1.06L11.06 10l2.72-2.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                  </svg>
+                </button>
+              </div>
+            <% end %>
+          </div>
+          <div class="relative">
+            <input type="text"
+                   data-contact-chips-target="input"
+                   placeholder="Search contacts..."
+                   autocomplete="off"
+                   class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   data-action="input->contact-chips#onInput keydown->contact-chips#onKeydown" />
+            <div data-contact-chips-target="dropdown"
+                 class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                        border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+              <ul data-contact-chips-target="list" role="listbox"></ul>
+            </div>
+          </div>
+        </div>
+
+        <%# Film Agency(ies) — multi company %>
+        <% film_agency_companies = book.persisted? ? book.book_companies.where(role: BookCompany.roles[:film_agency]).includes(:company).map { |bc| { id: bc.company_id, label: bc.company.name } } : [] %>
+        <div data-controller="company-chips"
+             data-company-chips-search-url-value="<%= search_companies_path(format: :json) %>"
+             data-company-chips-field-name-value="book[film_agency_company_ids][]">
+          <p class="block text-xs font-medium text-gray-600 mb-1">Film Agency(ies)</p>
+          <div data-company-chips-target="chips" class="flex flex-wrap gap-1.5 mb-2 min-h-[2rem]">
+            <% film_agency_companies.each do |c| %>
+              <div class="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full text-sm font-medium
+                          bg-sky-50 text-sky-800 border border-sky-200"
+                   data-company-id="<%= c[:id] %>" data-company-label="<%= c[:label] %>">
+                <span><%= c[:label] %></span>
+                <input type="hidden" name="book[film_agency_company_ids][]" value="<%= c[:id] %>">
+                <button type="button" data-company-id="<%= c[:id] %>"
+                        data-action="click->company-chips#removeChip"
+                        class="rounded-full p-0.5 hover:bg-sky-200 text-sky-400 hover:text-sky-700 transition-colors">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-2.72 2.72a.75.75 0 101.06 1.06L10 11.06l2.72 2.72a.75.75 0 101.06-1.06L11.06 10l2.72-2.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                  </svg>
+                </button>
+              </div>
+            <% end %>
+          </div>
+          <div class="relative">
+            <input type="text"
+                   data-company-chips-target="input"
+                   placeholder="Search companies..."
+                   autocomplete="off"
+                   class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   data-action="input->company-chips#onInput keydown->company-chips#onKeydown" />
+            <div data-company-chips-target="dropdown"
+                 class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                        border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+              <ul data-company-chips-target="list" role="listbox"></ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <%# Rights %>
+  <div class="rounded-lg border border-gray-200">
+    <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 rounded-t-lg">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Rights</p>
+    </div>
+    <div class="p-4 space-y-5">
+
+      <%# Rights Sold — rich text %>
+      <div>
+        <p class="block text-sm font-medium text-gray-700 mb-1">Rights Sold</p>
+        <div data-controller="rich-text"
+             data-rich-text-name-value="book[rights_sold]"
+             data-rich-text-value-value="<%= book.rights_sold.to_s %>"></div>
+      </div>
+
+      <%# Rights Holder — single company %>
+      <div>
+        <p class="block text-xs font-medium text-gray-600 mb-1">Rights Holder</p>
+        <% rights_holder_bc = book.persisted? ? book.book_companies.find_by(role: BookCompany.roles[:rights_holder]) : nil %>
+        <div class="relative"
+             data-controller="company-combobox"
+             data-company-combobox-url-value="<%= search_companies_path(format: :json) %>">
+          <input type="text"
+                 data-company-combobox-target="input"
+                 placeholder="Search companies..."
+                 value="<%= rights_holder_bc&.company&.name %>"
+                 autocomplete="off"
+                 class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                 data-action="input->company-combobox#search keydown->company-combobox#onKeydown" />
+          <input type="hidden"
+                 name="book[rights_holder_company_id]"
+                 value="<%= rights_holder_bc&.company_id %>"
+                 data-company-combobox-target="hiddenField" />
+          <div data-company-combobox-target="dropdown"
+               class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                      border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+        </div>
+      </div>
+
+      <%# Secondary Rights Holder(s) — multi company %>
+      <% secondary_rh_companies = book.persisted? ? book.book_companies.where(role: BookCompany.roles[:secondary_rights_holder]).includes(:company).map { |bc| { id: bc.company_id, label: bc.company.name } } : [] %>
+      <div data-controller="company-chips"
+           data-company-chips-search-url-value="<%= search_companies_path(format: :json) %>"
+           data-company-chips-field-name-value="book[secondary_rights_holder_company_ids][]">
+        <p class="block text-xs font-medium text-gray-600 mb-1">Secondary Rights Holder(s)</p>
+        <div data-company-chips-target="chips" class="flex flex-wrap gap-1.5 mb-2 min-h-[2rem]">
+          <% secondary_rh_companies.each do |c| %>
+            <div class="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full text-sm font-medium
+                        bg-teal-50 text-teal-800 border border-teal-200"
+                 data-company-id="<%= c[:id] %>" data-company-label="<%= c[:label] %>">
+              <span><%= c[:label] %></span>
+              <input type="hidden" name="book[secondary_rights_holder_company_ids][]" value="<%= c[:id] %>">
+              <button type="button" data-company-id="<%= c[:id] %>"
+                      data-action="click->company-chips#removeChip"
+                      class="rounded-full p-0.5 hover:bg-teal-200 text-teal-400 hover:text-teal-700 transition-colors">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-2.72 2.72a.75.75 0 101.06 1.06L10 11.06l2.72 2.72a.75.75 0 101.06-1.06L11.06 10l2.72-2.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                </svg>
+              </button>
+            </div>
+          <% end %>
+        </div>
+        <div class="relative">
+          <input type="text"
+                 data-company-chips-target="input"
+                 placeholder="Search companies..."
+                 autocomplete="off"
+                 class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                 data-action="input->company-chips#onInput keydown->company-chips#onKeydown" />
+          <div data-company-chips-target="dropdown"
+               class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
+                      border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+            <ul data-company-chips-target="list" role="listbox"></ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

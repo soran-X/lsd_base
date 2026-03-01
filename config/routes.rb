@@ -51,6 +51,9 @@ Rails.application.routes.draw do
   end
   resources :roles
   resources :genres
+  resources :film_genres do
+    collection { get :search, defaults: { format: :json } }
+  end
   resources :subgenres
   resources :client_types
   resources :site_settings, except: %i[new create destroy] do

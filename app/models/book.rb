@@ -56,6 +56,10 @@ class Book < ApplicationRecord
   has_many :agency_companies,        through: :book_agency_records,  source: :company
   has_many :book_film_agency_records, -> { film_agency }, class_name: "BookCompany"
   has_many :film_agency_companies,   through: :book_film_agency_records, source: :company
+  has_one  :book_rights_holder_record,          -> { rights_holder },           class_name: "BookCompany"
+  has_one  :rights_holder_company,              through: :book_rights_holder_record,          source: :company
+  has_many :book_secondary_rights_holder_records, -> { secondary_rights_holder }, class_name: "BookCompany"
+  has_many :secondary_rights_holder_companies,  through: :book_secondary_rights_holder_records, source: :company
 
   has_many :book_contacts, dependent: :destroy
   has_many :contacts,      through: :book_contacts
@@ -66,13 +70,17 @@ class Book < ApplicationRecord
   has_many :book_film_agent_records,  -> { film_agent },  class_name: "BookContact"
   has_many :film_agent_contacts,      through: :book_film_agent_records, source: :contact
 
+  has_many :book_updates,      dependent: :destroy
+  has_many :film_activities,   dependent: :destroy
   has_many :reading_materials, dependent: :destroy
   has_many :client_activities, dependent: :destroy
   has_many :book_memos,        dependent: :destroy
   has_many :archive_notes,     dependent: :destroy
 
   # ── Nested attributes ─────────────────────────────────────────────────────
-  accepts_nested_attributes_for :film_tracking,     allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :book_updates,    allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :film_activities, allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :film_tracking,   allow_destroy: true, reject_if: :all_blank
   accepts_nested_attributes_for :reading_materials, allow_destroy: true, reject_if: :all_blank
   accepts_nested_attributes_for :client_activities, allow_destroy: true, reject_if: :all_blank
   accepts_nested_attributes_for :book_memos,        allow_destroy: true, reject_if: :all_blank

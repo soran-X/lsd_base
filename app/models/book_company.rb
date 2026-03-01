@@ -1,12 +1,14 @@
 class BookCompany < ApplicationRecord
   # ── Enums ─────────────────────────────────────────────────────────────────
   enum :role, {
-    publisher:   0,
-    agency:      1,
-    film_agency: 2,
-    distributor: 3,
-    other:       4,
-    editor:      5
+    publisher:                0,
+    agency:                   1,
+    film_agency:              2,
+    distributor:              3,
+    other:                    4,
+    editor:                   5,
+    rights_holder:            6,
+    secondary_rights_holder:  7
   }, validate: true
 
   # ── Associations ──────────────────────────────────────────────────────────
