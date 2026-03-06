@@ -1,5 +1,8 @@
 class FilmGenresController < ApplicationController
-  before_action :require_admin, except: :search
+  before_action -> { authorize!(:index,   :film_genres) }, only: %i[index]
+  before_action -> { authorize!(:new,     :film_genres) }, only: %i[new create]
+  before_action -> { authorize!(:edit,    :film_genres) }, only: %i[edit update]
+  before_action -> { authorize!(:destroy, :film_genres) }, only: %i[destroy]
   before_action :set_film_genre, only: %i[edit update destroy]
 
   def index
@@ -53,9 +56,5 @@ class FilmGenresController < ApplicationController
 
   def film_genre_params
     params.expect(film_genre: [:name])
-  end
-
-  def require_admin
-    redirect_to root_path, alert: "Not authorized." unless Current.user.hierarchy_level >= 50
   end
 end

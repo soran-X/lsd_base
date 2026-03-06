@@ -1,0 +1,12 @@
+<% content_for :title, "Edit Custom Field" %>
+
+<div class="max-w-2xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Edit Custom Field</h1>
+    <p class="text-sm text-gray-500 mt-0.5"><%= @custom_field.name %></p>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <%= render "form", custom_field: @custom_field %>
+  </div>
+</div>

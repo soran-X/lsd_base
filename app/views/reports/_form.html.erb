@@ -1,0 +1,172 @@
+<%# Report form partial — used by new.html.erb and edit.html.erb %>
+<%= form_with model: report, class: "space-y-0" do |f| %>
+  <%= render "reports/form_errors", report: report %>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <%# ── Left column (main fields) ──────────────────────────────────── %>
+    <div class="lg:col-span-2 space-y-5">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Report Details</h2>
+
+        <div>
+          <%= f.label :title, "Title", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= f.text_field :title,
+                class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <%= f.label :report_type, "Report Type", class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <%= f.select :report_type,
+                  Report::TYPE_LABELS.map { |k, v| [v, k] },
+                  {},
+                  class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+          </div>
+          <div>
+            <%= f.label :report_date, "Report Date", class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <%= f.date_field :report_date,
+                  class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+          </div>
+        </div>
+
+        <div>
+          <%= f.label :body, "Body", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <div data-controller="rich-text"
+               data-rich-text-name-value="<%= f.field_name(:body) %>"
+               data-rich-text-value-value="<%= report.body.to_s.gsub('"', '&quot;') %>">
+          </div>
+        </div>
+
+        <div>
+          <%= f.label :footer, "Footer", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <div data-controller="rich-text"
+               data-rich-text-name-value="<%= f.field_name(:footer) %>"
+               data-rich-text-value-value="<%= report.footer.to_s.gsub('"', '&quot;') %>">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Right column (meta + books) ────────────────────────────────── %>
+    <div class="space-y-5">
+
+      <%# Status & toggles %>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 space-y-4">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Status</h2>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-700">Sent</p>
+            <p class="text-xs text-gray-400">Mark this report as sent to clients</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <%= f.check_box :sent, class: "sr-only peer" %>
+            <div class="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer
+                        peer-checked:after:translate-x-full peer-checked:after:border-white
+                        after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                        after:bg-white after:border-gray-300 after:border after:rounded-full
+                        after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          </label>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-700">Pinned</p>
+            <p class="text-xs text-gray-400">Show at the top of the reports list</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <%= f.check_box :pinned, class: "sr-only peer" %>
+            <div class="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer
+                        peer-checked:after:translate-x-full peer-checked:after:border-white
+                        after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                        after:bg-white after:border-gray-300 after:border after:rounded-full
+                        after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          </label>
+        </div>
+      </div>
+
+      <%# Client Types %>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Client Types</h2>
+        <div data-controller="tag-select"
+             data-tag-select-selected-value="<%= report.client_types.map { |ct| { id: ct.id, name: ct.name } }.to_json %>"
+             data-tag-select-field-name-value="report[client_type_ids][]"
+             data-tag-select-color-value="rose">
+          <div data-tag-select-target="tags" class="flex flex-wrap gap-1.5 mb-3 min-h-[1.75rem]"></div>
+          <div data-tag-select-target="inputs"></div>
+          <select data-tag-select-target="select"
+                  data-action="change->tag-select#add"
+                  class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">Add client type…</option>
+            <% @client_types.each do |ct| %>
+              <option value="<%= ct.id %>"><%= ct.name %></option>
+            <% end %>
+          </select>
+        </div>
+      </div>
+
+      <%# Books Included %>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Books Included</h2>
+        <div data-controller="book-chips"
+             data-book-chips-search-url-value="<%= search_books_path(format: :json) %>"
+             data-book-chips-field-name-value="report[book_ids][]">
+
+          <%# Pre-populated chips from edit or from ?book_ids[] params %>
+          <div data-book-chips-target="chips" class="flex flex-wrap gap-1.5 mb-3 min-h-[1.75rem]">
+            <% preloaded = defined?(preloaded_books) ? preloaded_books : report.books %>
+            <% preloaded.each do |book| %>
+              <% label = [book.title, book.credited_authors.map(&:display_name).join(", ")].reject(&:blank?).join(" — ") rescue book.title %>
+              <div class="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full text-sm font-medium
+                          bg-indigo-50 text-indigo-800 border border-indigo-200"
+                   data-book-id="<%= book.id %>"
+                   data-book-label="<%= label %>">
+                <span><%= label %></span>
+                <input type="hidden" name="report[book_ids][]" value="<%= book.id %>">
+                <button type="button"
+                        data-book-id="<%= book.id %>"
+                        data-action="click->book-chips#removeChip"
+                        class="rounded-full p-0.5 hover:bg-indigo-200 text-indigo-400 hover:text-indigo-700 transition-colors">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-2.72 2.72a.75.75 0 101.06 1.06L10 11.06l2.72 2.72a.75.75 0 101.06-1.06L11.06 10l2.72-2.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                  </svg>
+                </button>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="relative">
+            <input type="text"
+                   data-book-chips-target="input"
+                   data-action="input->book-chips#onInput keydown->book-chips#onKeydown"
+                   placeholder="Search books to add…"
+                   autocomplete="off"
+                   class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+            <div data-book-chips-target="dropdown"
+                 class="hidden absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200
+                        rounded-lg shadow-lg overflow-hidden">
+              <ul data-book-chips-target="list" role="listbox" class="max-h-60 overflow-y-auto py-1"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <%# Save buttons %>
+  <div class="flex gap-3 pt-2">
+    <%= f.submit report.new_record? ? "Create Report" : "Update Report",
+          class: "inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold
+                  rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+    <%= link_to "Cancel", report.new_record? ? reports_path : report_path(report),
+          class: "inline-flex items-center px-4 py-2.5 bg-white text-gray-700 text-sm font-medium
+                  rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+  </div>
+<% end %>

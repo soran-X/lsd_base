@@ -1,5 +1,8 @@
 class ClientTypesController < ApplicationController
-  before_action :require_admin
+  before_action -> { authorize!(:index,   :client_types) }, only: %i[index]
+  before_action -> { authorize!(:new,     :client_types) }, only: %i[new create]
+  before_action -> { authorize!(:edit,    :client_types) }, only: %i[edit update]
+  before_action -> { authorize!(:destroy, :client_types) }, only: %i[destroy]
   before_action :set_client_type, only: %i[edit update destroy]
 
   def index
@@ -43,9 +46,5 @@ class ClientTypesController < ApplicationController
 
   def client_type_params
     params.expect(client_type: [:name])
-  end
-
-  def require_admin
-    redirect_to root_path, alert: "Not authorized." unless Current.user.hierarchy_level >= 50
   end
 end

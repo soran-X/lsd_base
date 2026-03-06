@@ -1,0 +1,199 @@
+<% content_for :title, @report.title %>
+
+<%# ── Header ──────────────────────────────────────────────────────────── %>
+<div class="flex items-start justify-between mb-6 gap-4">
+  <div>
+    <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+      <%= link_to "Reports", reports_path, class: "hover:text-gray-700" %>
+      <span>/</span>
+      <span class="text-gray-900 truncate max-w-xs"><%= @report.title %></span>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap mb-1">
+      <% if @report.pinned? %>
+        <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+      <% end %>
+      <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+        <%= @report.type_label %>
+      </span>
+      <% if @report.sent? %>
+        <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">Sent</span>
+      <% else %>
+        <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Draft</span>
+      <% end %>
+      <% @report.client_types.each do |ct| %>
+        <span class="inline-flex px-2 py-0.5 rounded-full text-xs bg-rose-50 text-rose-700 border border-rose-100"><%= ct.name %></span>
+      <% end %>
+    </div>
+    <h1 class="text-2xl font-bold text-gray-900"><%= @report.title %></h1>
+    <% book_count = @report_books.count %>
+    <p class="mt-0.5 text-sm text-gray-500">
+      <%= book_count %> title<%= book_count == 1 ? "" : "s" %>
+      · <%= @report.sent? ? "Sent" : "Unsent" %>
+      · <%= @report.type_label %>
+      <% if @report.report_date %>
+        · <%= @report.report_date.strftime("%B %-d, %Y") %>
+      <% end %>
+    </p>
+  </div>
+
+  <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+    <%= link_to render_html_report_path(@report), target: "_blank",
+          class: "inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors" do %>
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+      </svg>
+      Render / Print
+    <% end %>
+    <%= link_to edit_display_report_path(@report),
+          class: "inline-flex items-center gap-1.5 px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" do %>
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+      Edit Display
+    <% end %>
+    <% if Current.user.hierarchy_level >= 50 %>
+      <%= link_to "Edit", edit_report_path(@report),
+            class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+      <%= button_to "Delete", report_path(@report), method: :delete,
+            data: { action: "click->confirm#open", confirm_message_param: "Delete \"#{@report.title}\"? This cannot be undone." },
+            class: "inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors" %>
+    <% end %>
+  </div>
+</div>
+
+<%# ── Body preview ───────────────────────────────────────────────────── %>
+<% if @report.body.present? %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-5 mb-6 trix-content text-sm text-gray-800 leading-relaxed">
+    <%= @report.body.html_safe %>
+  </div>
+<% end %>
+
+<%# ── Book list (grouped + sortable) ─────────────────────────────────── %>
+<% is_admin = Current.user.hierarchy_level >= 50 %>
+
+<% if @report_books.none? %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-8 mb-6 text-center text-sm text-gray-400 italic">
+    No books included in this report.
+  </div>
+<% else %>
+  <div data-controller="report-sort"
+       data-report-sort-url-value="<%= reorder_report_path(@report) %>">
+
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        Books Included
+        <span class="ml-1.5 font-normal text-gray-400">(<%= @report_books.count %>)</span>
+      </p>
+      <% if is_admin %>
+        <span data-report-sort-target="status" class="text-xs text-gray-400"></span>
+      <% end %>
+    </div>
+
+    <% grouped = group_report_books_for_show(@report, @report_books) %>
+    <% grouped.each do |cat_group| %>
+
+      <%# Category heading — amber warning for incomplete, normal for regular groups %>
+      <% if cat_group[:category].present? %>
+        <% if cat_group[:incomplete] %>
+          <h2 class="text-base font-bold text-amber-700 mt-6 mb-2 pb-1 border-b-2 border-amber-300 uppercase tracking-wide flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+            </svg>
+            <%= cat_group[:category] %>
+          </h2>
+        <% else %>
+          <h2 class="text-base font-bold text-gray-800 mt-6 mb-2 pb-1 border-b-2 border-gray-300 uppercase tracking-wide">
+            <%= cat_group[:category] %>
+          </h2>
+        <% end %>
+      <% end %>
+
+      <% cat_group[:sections].each do |sec_group| %>
+
+        <%# Section heading — e.g. "Fiction ▶ New Mention" %>
+        <% if sec_group[:section].present? %>
+          <h3 class="text-xs font-semibold text-indigo-600 uppercase tracking-wider mt-4 mb-2">
+            <% if cat_group[:category].present? %><%= cat_group[:category] %> &#9654; <% end %><%= sec_group[:section] %>
+          </h3>
+        <% end %>
+
+        <% sec_group[:genres].each do |genre_group| %>
+
+          <%# Genre sub-heading — italic label above each mini-table %>
+          <% if genre_group[:genre].present? %>
+            <p class="text-sm font-semibold text-gray-700 italic mt-3 mb-1 pl-0.5"><%= genre_group[:genre] %></p>
+          <% end %>
+
+          <%# Mini-table for this group %>
+          <% is_incomplete_group = cat_group[:incomplete] %>
+          <% thead_class = is_incomplete_group ? "bg-amber-50" : "bg-indigo-50" %>
+          <% th_class    = is_incomplete_group ? "text-amber-700" : "text-indigo-700" %>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-3">
+            <table class="min-w-full divide-y divide-gray-100 text-sm">
+              <thead class="<%= thead_class %>">
+                <tr>
+                  <% if is_admin && !is_incomplete_group %><th class="w-8 px-2 py-2"></th><% end %>
+                  <th class="px-4 py-2 text-left text-xs font-medium <%= th_class %>">#</th>
+                  <th class="px-4 py-2 text-left text-xs font-medium <%= th_class %>">Title</th>
+                  <th class="px-4 py-2 text-left text-xs font-medium <%= th_class %>">Authors</th>
+                  <th class="px-4 py-2 text-left text-xs font-medium <%= th_class %>">Scouts</th>
+                  <% if is_incomplete_group %>
+                    <th class="px-4 py-2 text-left text-xs font-medium <%= th_class %>">Missing</th>
+                  <% end %>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100"
+                     data-report-sort-target="tbody"
+                     <% if is_admin && !is_incomplete_group %>data-action="dragover->report-sort#dragOver drop->report-sort#drop"<% end %>>
+                <% genre_group[:report_books].each_with_index do |rb, i| %>
+                  <tr data-book-id="<%= rb.book_id %>"
+                      <% if is_admin && !is_incomplete_group %>draggable="true" data-action="dragstart->report-sort#dragStart dragend->report-sort#dragEnd"<% end %>
+                      class="hover:bg-gray-50 transition-colors<% if is_admin && !is_incomplete_group %> cursor-grab active:cursor-grabbing<% end %>">
+                    <% if is_admin && !is_incomplete_group %>
+                      <td class="px-2 py-2.5 w-8 text-gray-300 hover:text-gray-500 transition-colors" title="Drag to reorder">
+                        <svg class="w-4 h-4 mx-auto" viewBox="0 0 16 16" fill="currentColor">
+                          <circle cx="5" cy="4" r="1.25"/><circle cx="11" cy="4" r="1.25"/>
+                          <circle cx="5" cy="8" r="1.25"/><circle cx="11" cy="8" r="1.25"/>
+                          <circle cx="5" cy="12" r="1.25"/><circle cx="11" cy="12" r="1.25"/>
+                        </svg>
+                      </td>
+                    <% end %>
+                    <td class="px-4 py-2.5 text-gray-400 tabular-nums" data-row-number><%= i + 1 %></td>
+                    <td class="px-4 py-2.5 font-medium text-gray-900">
+                      <%= link_to rb.book.title, book_path(rb.book), class: "hover:text-indigo-600 transition-colors" %>
+                    </td>
+                    <td class="px-4 py-2.5 text-gray-600">
+                      <%= rb.book.credited_authors.map(&:display_name).join(", ").presence || "—" %>
+                    </td>
+                    <td class="px-4 py-2.5 text-gray-500 text-xs">
+                      <%= [ rb.book.primary_scout&.display_name, rb.book.secondary_scout&.display_name ].compact_blank.join(", ").presence || "—" %>
+                    </td>
+                    <% if is_incomplete_group %>
+                      <% missing = genre_group[:missing_by_book][rb.book_id] || [] %>
+                      <td class="px-4 py-2.5">
+                        <% missing.each do |field| %>
+                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 mr-1"><%= field %></span>
+                        <% end %>
+                      </td>
+                    <% end %>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+
+        <% end %>
+      <% end %>
+    <% end %>
+
+  </div>
+<% end %>
+
+<%# ── Footer preview ─────────────────────────────────────────────────── %>
+<% if @report.footer.present? %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-5 trix-content text-sm text-gray-600 leading-relaxed">
+    <%= @report.footer.html_safe %>
+  </div>
+<% end %>

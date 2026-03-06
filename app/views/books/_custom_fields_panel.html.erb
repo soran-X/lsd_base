@@ -1,0 +1,78 @@
+<%# Custom Fields show panel.
+    Locals: custom_fields (Array<CustomField>), custom_field_values (Hash: custom_field_id => CustomFieldValue) %>
+
+<% custom_fields.group_by(&:group_name).each do |group_name, fields| %>
+  <div class="field-group">
+    <div class="field-group-header">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider"><%= group_name %></p>
+    </div>
+    <dl class="divide-y divide-gray-100 px-4">
+      <% fields.each do |field|
+           cfv = custom_field_values[field.id]
+           next if cfv.nil? || (cfv.value_json.nil? && !field.required?)
+         %>
+        <div class="py-3 grid grid-cols-3 gap-4">
+          <dt class="text-sm font-medium text-gray-500"><%= field.name %></dt>
+          <dd class="col-span-2 text-sm text-gray-800">
+            <% if cfv.nil? || cfv.value_json.blank? %>
+              <span class="text-gray-400 italic">—</span>
+            <% else %>
+              <% case field.field_type
+                 when "checkbox" %>
+                <% if cfv.value_json == true || cfv.value_json == "1" || cfv.value_json == 1 %>
+                  <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Yes</span>
+                <% else %>
+                  <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">No</span>
+                <% end %>
+              <% when "rich_text" %>
+                <div class="leading-relaxed trix-content"><%= trix_sanitize cfv.value_json.to_s %></div>
+              <% when "combobox" %>
+                <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                  <%= cfv.value_json %>
+                </span>
+              <% when "multi_combobox" %>
+                <div class="flex flex-wrap gap-1.5">
+                  <% Array(cfv.value_json).reject(&:blank?).each do |choice| %>
+                    <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                      <%= choice %>
+                    </span>
+                  <% end %>
+                </div>
+              <% when "contact_select"
+                   contact = Contact.find_by(id: cfv.value_json.to_i) %>
+                <% if contact %>
+                  <%= link_to contact.display_name, contact_path(contact), class: "text-indigo-600 hover:text-indigo-800" %>
+                <% else %>
+                  <span class="text-gray-400 italic">Unknown contact</span>
+                <% end %>
+              <% when "multi_contact_select" %>
+                <div class="flex flex-wrap gap-1.5">
+                  <% Contact.where(id: Array(cfv.value_json).map(&:to_i)).each do |contact| %>
+                    <%= link_to contact.display_name, contact_path(contact),
+                          class: "inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-800 border border-violet-200 hover:bg-violet-100" %>
+                  <% end %>
+                </div>
+              <% when "company_select"
+                   company = Company.find_by(id: cfv.value_json.to_i) %>
+                <% if company %>
+                  <%= link_to company.name, company_path(company), class: "text-indigo-600 hover:text-indigo-800" %>
+                <% else %>
+                  <span class="text-gray-400 italic">Unknown company</span>
+                <% end %>
+              <% when "multi_company_select" %>
+                <div class="flex flex-wrap gap-1.5">
+                  <% Company.where(id: Array(cfv.value_json).map(&:to_i)).each do |company| %>
+                    <%= link_to company.name, company_path(company),
+                          class: "inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-sky-50 text-sky-800 border border-sky-200 hover:bg-sky-100" %>
+                  <% end %>
+                </div>
+              <% else %>
+                <%= cfv.value_json %>
+              <% end %>
+            <% end %>
+          </dd>
+        </div>
+      <% end %>
+    </dl>
+  </div>
+<% end %>

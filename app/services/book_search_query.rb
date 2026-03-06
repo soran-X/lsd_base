@@ -24,6 +24,7 @@ class BookSearchQuery
     scope = apply_readers(scope)
     scope = apply_rights_sold_text(scope)
     scope = apply_date_ranges(scope)
+    scope = apply_custom_fields(scope)
 
     scope.distinct
   end
@@ -266,6 +267,95 @@ class BookSearchQuery
       scope.joins(join_table).where(join_table => { column => after.. })
     else
       scope.joins(join_table).where(join_table => { column => ..before })
+    end
+  end
+
+  # ── Custom fields ──────────────────────────────────────────────────────────
+
+  def apply_custom_fields(scope)
+    cf = @params[:cf].presence
+    return scope if cf.blank?
+
+    cf.each do |field_id_str, value|
+      next if value.blank?
+      field = CustomField.find_by(id: field_id_str.to_i, active: true)
+      next unless field
+      scope = filter_by_custom_field(scope, field, value)
+    end
+    scope
+  end
+
+  def filter_by_custom_field(scope, field, value)
+    t = "custom_field_values"
+
+    case field.field_type
+    when "text", "rich_text"
+      sanitized = value.to_s.gsub("%", "").gsub("_", "")
+      scope.where(
+        "EXISTS (SELECT 1 FROM #{t} WHERE book_id = books.id AND custom_field_id = ? AND value_json::text ILIKE ?)",
+        field.id, "%#{sanitized}%"
+      )
+
+    when "checkbox"
+      if value.to_s.in?(%w[true 1 yes])
+        scope.where(
+          "EXISTS (SELECT 1 FROM #{t} WHERE book_id = books.id AND custom_field_id = ? AND (value_json = 'true'::jsonb OR value_json = '1'::jsonb OR value_json = '\"1\"'::jsonb OR value_json = '\"true\"'::jsonb))",
+          field.id
+        )
+      else
+        scope.where(
+          "EXISTS (SELECT 1 FROM #{t} WHERE book_id = books.id AND custom_field_id = ? AND (value_json = 'false'::jsonb OR value_json = '0'::jsonb OR value_json = '\"0\"'::jsonb OR value_json = '\"false\"'::jsonb))",
+          field.id
+        )
+      end
+
+    when "combobox"
+      scope.where(
+        "EXISTS (SELECT 1 FROM #{t} WHERE book_id = books.id AND custom_field_id = ? AND value_json = ?::jsonb)",
+        field.id, value.to_s.to_json
+      )
+
+    when "multi_combobox"
+      scope.where(
+        "EXISTS (SELECT 1 FROM #{t} WHERE book_id = books.id AND custom_field_id = ? AND value_json @> ?::jsonb)",
+        field.id, [value.to_s].to_json
+      )
+
+    when "contact_select"
+      contact_id = value.to_i
+      return scope if contact_id.zero?
+      scope.where(
+        "EXISTS (SELECT 1 FROM #{t} WHERE book_id = books.id AND custom_field_id = ? AND (value_json = ?::jsonb OR value_json = ?::jsonb))",
+        field.id, contact_id.to_json, contact_id.to_s.to_json
+      )
+
+    when "multi_contact_select"
+      contact_id = value.to_i
+      return scope if contact_id.zero?
+      # Values stored as ["42", "15"]; check if array contains the ID (as integer or string)
+      scope.where(
+        "EXISTS (SELECT 1 FROM #{t} WHERE book_id = books.id AND custom_field_id = ? AND (value_json @> ?::jsonb OR value_json @> ?::jsonb))",
+        field.id, [contact_id].to_json, [contact_id.to_s].to_json
+      )
+
+    when "company_select"
+      company_id = value.to_i
+      return scope if company_id.zero?
+      scope.where(
+        "EXISTS (SELECT 1 FROM #{t} WHERE book_id = books.id AND custom_field_id = ? AND (value_json = ?::jsonb OR value_json = ?::jsonb))",
+        field.id, company_id.to_json, company_id.to_s.to_json
+      )
+
+    when "multi_company_select"
+      company_id = value.to_i
+      return scope if company_id.zero?
+      scope.where(
+        "EXISTS (SELECT 1 FROM #{t} WHERE book_id = books.id AND custom_field_id = ? AND (value_json @> ?::jsonb OR value_json @> ?::jsonb))",
+        field.id, [company_id].to_json, [company_id.to_s].to_json
+      )
+
+    else
+      scope
     end
   end
 

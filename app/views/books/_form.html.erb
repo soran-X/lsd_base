@@ -15,6 +15,13 @@
     <%= render "books/form/panel_film", f: f, book: book %>
     <%= render "books/form/panel_report", f: f, book: book %>
 
+    <% if defined?(@custom_fields) && @custom_fields&.any? %>
+      <div data-tab-target="panel" data-tab="custom_fields"
+           class="hidden px-6 py-6 space-y-6">
+        <%= render "books/form/panel_custom_fields", f: f, book: book, custom_fields: @custom_fields %>
+      </div>
+    <% end %>
+
   </div>
 
   <%= render "books/form/save_buttons", f: f, book: book %>

@@ -1,4 +1,5 @@
 class BookSearchesController < ApplicationController
+  before_action -> { authorize!(:index, :book_searches) }
   before_action :set_lookup_data, only: %i[new show]
 
   def index
@@ -26,6 +27,7 @@ class BookSearchesController < ApplicationController
                               .includes(:credited_authors, :primary_scout, :genres, :sub_genres)
                               .order(updated_at: :desc)
     load_saved_associations
+    load_saved_cf_labels
   end
 
   def destroy
@@ -36,13 +38,14 @@ class BookSearchesController < ApplicationController
   private
 
   def set_lookup_data
-    @genres       = Genre.ordered
-    @sub_genres   = SubGenre.ordered
-    @client_types = ClientType.ordered
+    @genres        = Genre.ordered
+    @sub_genres    = SubGenre.ordered
+    @client_types  = ClientType.ordered
+    @custom_fields = CustomField.active.ordered.to_a
   end
 
   def search_q_params
-    params.fetch(:q, {}).permit(
+    q = params.fetch(:q, {}).permit(
       :keyword, :to_read, :lead_title, :tracking_material,
       :rights_sold_text,
       :updated_after, :updated_before,
@@ -60,7 +63,41 @@ class BookSearchesController < ApplicationController
       agent_contact_ids: [], film_agent_contact_ids: [],
       client_activity_company_ids: [], client_activity_contact_ids: [],
       activity_types: []
-    )
+    ).to_h
+
+    cf_raw = params.dig(:q, :cf)
+    if cf_raw.is_a?(ActionController::Parameters)
+      cf = cf_raw.to_unsafe_h.transform_values(&:presence).compact
+      q["cf"] = cf if cf.any?
+    end
+
+    q
+  end
+
+  def load_saved_cf_labels
+    @saved_cf_labels = {}
+    return unless @custom_fields.any?
+
+    cf = (@book_search.params["cf"] || {})
+    cf.each do |field_id_str, val|
+      next if val.blank?
+      field = @custom_fields.find { |f| f.id == field_id_str.to_i }
+      next unless field
+
+      @saved_cf_labels[field_id_str] = if field.contact_type?
+        contact_id = val.to_i
+        contact    = contact_id > 0 ? Contact.find_by(id: contact_id) : nil
+        contact ? { id: contact_id, label: contact.display_name } : nil
+      elsif field.company_type?
+        company_id = val.to_i
+        company    = company_id > 0 ? Company.find_by(id: company_id) : nil
+        company ? { id: company_id, label: company.name } : nil
+      else
+        val
+      end
+    end
+
+    @saved_cf_labels.compact!
   end
 
   def load_saved_associations

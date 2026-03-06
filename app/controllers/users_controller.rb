@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-  before_action :require_admin!, except: [:search]
+  before_action -> { authorize!(:index, :users) }, except: [:search]
   before_action :set_user, only: %i[show edit update destroy]
   before_action -> { enforce_hierarchy!(@user) }, only: %i[show edit update destroy]
 
@@ -41,7 +41,8 @@ class UsersController < ApplicationController
   end
 
   def edit
-    @roles = Role.assignable_by(Current.user.role).ordered
+    @roles        = Role.assignable_by(Current.user.role).ordered
+    @client_types = ClientType.ordered
   end
 
   def update
@@ -52,9 +53,11 @@ class UsersController < ApplicationController
     end
 
     if @user.update(user_params)
+      sync_user_client_types(@user)
       redirect_to users_path, notice: "User updated successfully."
     else
-      @roles = Role.assignable_by(Current.user.role).ordered
+      @roles        = Role.assignable_by(Current.user.role).ordered
+      @client_types = ClientType.ordered
       render :edit, status: :unprocessable_entity
     end
   end
@@ -71,6 +74,13 @@ class UsersController < ApplicationController
 
     def user_params
       params.require(:user).permit(:first_name, :last_name, :role_id, :approved)
+    end
+
+    def sync_user_client_types(user)
+      return unless params[:user].key?(:client_type_ids)
+      ids = Array(params.dig(:user, :client_type_ids)).map(&:to_i).select(&:positive?)
+      user.user_client_types.destroy_all
+      ids.each { |id| user.user_client_types.create!(client_type_id: id) }
     end
 
     def new_user_params

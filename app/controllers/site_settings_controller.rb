@@ -1,5 +1,5 @@
 class SiteSettingsController < ApplicationController
-  before_action :require_superadmin!
+  before_action -> { authorize!(:index, :site_settings) }
   before_action :set_site_setting, only: %i[show edit update reset]
 
   def index
@@ -42,6 +42,10 @@ class SiteSettingsController < ApplicationController
       setting = SiteSetting.find_by!(key: key)
       setting.update!(value: params[short].to_s.strip)
     end
+
+    # Boolean toggle — checkbox only submits when checked, so default to false
+    header_value = params[:report_company_header] == "true" ? "true" : "false"
+    SiteSetting.find_by!(key: "report_company_header").update!(value: header_value)
 
     redirect_to site_settings_path, notice: "Company details updated."
   end

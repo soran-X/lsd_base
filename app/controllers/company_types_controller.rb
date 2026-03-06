@@ -1,5 +1,8 @@
 class CompanyTypesController < ApplicationController
-  before_action :require_admin
+  before_action -> { authorize!(:index,   :company_types) }, only: %i[index]
+  before_action -> { authorize!(:new,     :company_types) }, only: %i[new create]
+  before_action -> { authorize!(:edit,    :company_types) }, only: %i[edit update]
+  before_action -> { authorize!(:destroy, :company_types) }, only: %i[destroy]
   before_action :set_company_type, only: %i[edit update destroy]
 
   def index
@@ -45,7 +48,4 @@ class CompanyTypesController < ApplicationController
     params.expect(company_type: [:name])
   end
 
-  def require_admin
-    redirect_to root_path, alert: "Not authorized." unless Current.user.hierarchy_level >= 50
-  end
 end

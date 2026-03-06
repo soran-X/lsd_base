@@ -1,0 +1,42 @@
+<% content_for :title, "Edit Display — #{@report.title}" %>
+
+<div class="mb-6">
+  <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+    <%= link_to "Reports", reports_path, class: "hover:text-gray-700" %>
+    <span>/</span>
+    <%= link_to @report.title, report_path(@report), class: "hover:text-gray-700 truncate max-w-xs" %>
+    <span>/</span>
+    <span class="text-gray-900">Edit Display</span>
+  </div>
+  <div class="flex items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Edit Report Display</h1>
+      <p class="mt-1 text-sm text-gray-500">
+        Edit the rendered report HTML directly. Use Reset to regenerate from the default template.
+      </p>
+    </div>
+    <%= button_to "Reset to Default", reset_display_report_path(@report), method: :post,
+          data: { action: "click->confirm#open", confirm_message_param: "Reset to default template? Your custom edits will be lost." },
+          class: "inline-flex items-center px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors shrink-0" %>
+  </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+  <%= form_with url: update_display_report_path(@report), method: :patch, class: "space-y-5" do |f| %>
+    <div data-controller="rich-text"
+         data-rich-text-name-value="rendered_content"
+         data-rich-text-value-value="<%= @report.rendered_content.to_s.gsub('"', '&quot;') %>">
+    </div>
+
+    <div class="flex gap-3 pt-2">
+      <button type="submit"
+              class="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold
+                     rounded-lg hover:bg-indigo-700 transition-colors">
+        Save Display
+      </button>
+      <%= link_to "Cancel", report_path(@report),
+            class: "inline-flex items-center px-4 py-2.5 bg-white text-gray-700 text-sm font-medium
+                    rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" %>
+    </div>
+  <% end %>
+</div>

@@ -25,6 +25,8 @@ class User < ApplicationRecord
   has_many :recovery_codes, dependent: :destroy
   has_many :audit_logs, dependent: :nullify
   has_many :book_searches, dependent: :destroy
+  has_many :user_client_types, dependent: :destroy
+  has_many :client_types, through: :user_client_types
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :password, allow_nil: true, length: { minimum: 12 }

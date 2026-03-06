@@ -1,0 +1,90 @@
+<%# ── Header ─────────────────────────────────────────────────────────────────── %>
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Custom Fields</h1>
+    <p class="text-sm text-gray-500 mt-0.5">Define custom fields that appear on the book form.</p>
+  </div>
+  <% if can?(:new, :custom_fields) %>
+    <%= link_to "New Custom Field", new_custom_field_path,
+          class: "inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-sm
+                  font-medium rounded-lg hover:bg-indigo-700 transition-colors" %>
+  <% end %>
+</div>
+
+<%# ── Field groups ────────────────────────────────────────────────────────────── %>
+<% if @grouped.any? %>
+  <% @grouped.each do |group_name, fields| %>
+    <div class="mb-6">
+      <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1"><%= group_name %></h2>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-100 bg-gray-50">
+              <th class="px-5 py-3 text-left font-semibold text-gray-600">Name</th>
+              <th class="px-5 py-3 text-left font-semibold text-gray-600">Type</th>
+              <th class="px-5 py-3 text-left font-semibold text-gray-600 hidden sm:table-cell">Choices</th>
+              <th class="px-5 py-3 text-left font-semibold text-gray-600 hidden md:table-cell">Position</th>
+              <th class="px-5 py-3 text-left font-semibold text-gray-600 hidden md:table-cell">Status</th>
+              <th class="px-5 py-3"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <% fields.each do |field| %>
+              <tr class="hover:bg-gray-50 group">
+                <td class="px-5 py-3 font-medium text-gray-800">
+                  <%= field.name %>
+                  <% if field.required? %>
+                    <span class="ml-1.5 text-xs text-red-500">*</span>
+                  <% end %>
+                </td>
+                <td class="px-5 py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                    <%= field.field_type.humanize %>
+                  </span>
+                </td>
+                <td class="px-5 py-3 text-gray-500 hidden sm:table-cell">
+                  <% choices = field.choices_for_select %>
+                  <% if choices.any? %>
+                    <span class="text-xs text-gray-600"><%= choices.count %> choice<%= "s" if choices.count != 1 %></span>
+                  <% else %>
+                    <span class="text-gray-300">—</span>
+                  <% end %>
+                </td>
+                <td class="px-5 py-3 text-gray-500 hidden md:table-cell"><%= field.position %></td>
+                <td class="px-5 py-3 hidden md:table-cell">
+                  <% if field.active? %>
+                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>
+                  <% else %>
+                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Inactive</span>
+                  <% end %>
+                </td>
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-3 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                    <% if can?(:edit, :custom_fields) %>
+                      <%= link_to "Edit", edit_custom_field_path(field),
+                            class: "text-xs text-gray-500 hover:text-gray-700 font-medium" %>
+                    <% end %>
+                    <% if can?(:destroy, :custom_fields) %>
+                      <%= button_to "Delete", custom_field_path(field), method: :delete,
+                            data: { action: "click->confirm#open",
+                                    confirm_message_param: "Delete \"#{field.name}\"? All saved values for this field will also be deleted." },
+                            class: "text-xs text-red-500 hover:text-red-700 font-medium bg-transparent border-0 cursor-pointer p-0" %>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+<% else %>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 text-center py-16 text-sm text-gray-400">
+    <p class="mb-3">No custom fields defined yet.</p>
+    <% if can?(:new, :custom_fields) %>
+      <%= link_to "Add the first field", new_custom_field_path,
+            class: "text-indigo-600 hover:text-indigo-800 font-medium" %>
+    <% end %>
+  </div>
+<% end %>

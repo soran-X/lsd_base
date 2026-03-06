@@ -4,8 +4,8 @@
   <%= f.fields_for :film_tracking do |ft| %>
 
     <%# ── Film Option (+ Film Activity) ─────────────────────────────────── %>
-    <div class="rounded-lg border border-gray-200 overflow-hidden" data-controller="nested-form">
-      <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 rounded-t-lg">
+    <div class="field-group" data-controller="nested-form">
+      <div class="field-group-header">
         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Film Option</p>
       </div>
       <div class="p-4 space-y-4">
@@ -59,8 +59,7 @@
                          value="<%= fa.object.company_id %>"
                          data-company-combobox-target="hiddenField" />
                   <div data-company-combobox-target="dropdown"
-                       class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
-                              border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+                       class="combo-dropdown hidden max-h-52 overflow-y-auto"></div>
                 </div>
                 <div class="flex gap-2 items-end">
                   <div class="flex-1">
@@ -106,8 +105,7 @@
                          value=""
                          data-company-combobox-target="hiddenField" />
                   <div data-company-combobox-target="dropdown"
-                       class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
-                              border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+                       class="combo-dropdown hidden max-h-52 overflow-y-auto"></div>
                 </div>
                 <div class="flex gap-2 items-end">
                   <div class="flex-1">
@@ -136,7 +134,7 @@
     <%# ── Film Info ──────────────────────────────────────────────────────── %>
     <div class="rounded-lg border border-gray-200" data-controller="film-load-book-info">
 
-      <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
+      <div class="field-group-header flex items-center justify-between">
         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Film Info</p>
         <div class="flex items-center gap-4">
           <%# Load from Book Info button %>
@@ -150,26 +148,13 @@
             </svg>
             Load from Book Info
           </button>
-          <%# OFF? toggle %>
-          <label class="flex items-center gap-2 cursor-pointer select-none">
-            <%= ft.check_box :off, class: "sr-only peer" %>
-            <div class="relative w-9 h-5 rounded-full transition-colors bg-gray-200
-                        peer-checked:bg-red-500
-                        after:content-[''] after:absolute after:top-0.5 after:left-0.5
-                        after:h-4 after:w-4 after:bg-white after:rounded-full after:shadow
-                        after:transition-transform peer-checked:after:translate-x-4"></div>
-            <span class="text-xs font-medium text-gray-600">OFF?</span>
-          </label>
-          <%# Pub Buzz? toggle %>
-          <label class="flex items-center gap-2 cursor-pointer select-none">
-            <%= ft.check_box :pub_buzz, class: "sr-only peer" %>
-            <div class="relative w-9 h-5 rounded-full transition-colors bg-gray-200
-                        peer-checked:bg-amber-500
-                        after:content-[''] after:absolute after:top-0.5 after:left-0.5
-                        after:h-4 after:w-4 after:bg-white after:rounded-full after:shadow
-                        after:transition-transform peer-checked:after:translate-x-4"></div>
-            <span class="text-xs font-medium text-gray-600">Pub Buzz?</span>
-          </label>
+          <%# OFF / Pub Buzz select %>
+          <%= ft.select :film_flag,
+                [["—", ""], ["Out for Film", "Out for Film"], ["Pub Buzz", "Pub Buzz"]],
+                { selected: ft.object.film_flag.to_s },
+                class: "text-xs rounded-md border border-gray-200 bg-white px-2 py-1
+                        text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                        cursor-pointer" %>
         </div>
       </div>
 
@@ -207,6 +192,26 @@
                data-rich-text-value-value="<%= ft.object.readers_thoughts.to_s %>"></div>
         </div>
 
+        <%# Enable Red Text toggle %>
+        <div data-controller="toggle" data-toggle-show-value="<%= ft.object.enable_red_text? %>">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <%= ft.check_box :enable_red_text, class: "sr-only peer",
+                  data: { action: "change->toggle#toggle" } %>
+            <div class="relative w-9 h-5 rounded-full transition-colors bg-gray-200
+                        peer-checked:bg-red-600
+                        after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                        after:h-4 after:w-4 after:bg-white after:rounded-full after:shadow
+                        after:transition-transform peer-checked:after:translate-x-4"></div>
+            <span class="text-sm font-medium text-gray-700">Enable Red Text</span>
+          </label>
+          <div data-toggle-target="content" class="mt-3<%= ft.object.enable_red_text? ? '' : ' hidden' %>">
+            <p class="block text-sm font-medium text-gray-700 mb-1">Red Text</p>
+            <%= ft.text_area :red_text, rows: 3,
+                  class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-red-400 resize-y" %>
+          </div>
+        </div>
+
         <%# Film Genre — multi-select with create %>
         <% film_genre_ids = ft.object.persisted? ? ft.object.film_genres.map { |g| { id: g.id, label: g.name } } : [] %>
         <div data-controller="film-genre-chips"
@@ -240,8 +245,7 @@
                            focus:outline-none focus:ring-2 focus:ring-indigo-500"
                    data-action="input->film-genre-chips#onInput keydown->film-genre-chips#onKeydown" />
             <div data-film-genre-chips-target="dropdown"
-                 class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
-                        border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+                 class="combo-dropdown hidden max-h-52 overflow-y-auto"
               <ul data-film-genre-chips-target="list" role="listbox"></ul>
             </div>
           </div>

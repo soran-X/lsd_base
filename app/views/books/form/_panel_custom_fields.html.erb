@@ -1,0 +1,220 @@
+<%# Custom Fields panel — rendered inside the book form tab container.
+    Locals: f (form builder), book, custom_fields (Array<CustomField>) %>
+
+<% existing_values = book.persisted? ? book.custom_field_values.index_by(&:custom_field_id) : {} %>
+
+<% custom_fields.group_by(&:group_name).each do |group_name, fields| %>
+  <div class="field-group">
+    <div class="field-group-header">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider"><%= group_name %></p>
+    </div>
+    <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-5">
+      <% fields.each do |field|
+           cfv        = existing_values[field.id]
+           raw_value  = cfv&.value_json
+           field_name = "book[custom_fields][#{field.id}]"
+           wide       = field.field_type.in?(%w[rich_text multi_combobox multi_contact_select multi_company_select])
+         %>
+        <div class="<%= wide ? 'md:col-span-2' : '' %>">
+          <% unless field.checkbox? %>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <%= field.name %><% if field.required? %><span class="text-red-500 ml-0.5">*</span><% end %>
+            </label>
+          <% end %>
+
+          <% case field.field_type
+             when "text" %>
+            <input type="text"
+                   name="<%= field_name %>"
+                   value="<%= raw_value.to_s %>"
+                   <%= "required" if field.required? %>
+                   class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+
+          <% when "rich_text" %>
+            <div data-controller="rich-text"
+                 data-rich-text-name-value="<%= field_name %>"
+                 data-rich-text-value-value="<%= raw_value.to_s %>">
+            </div>
+
+          <% when "checkbox" %>
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input type="hidden" name="<%= field_name %>" value="0">
+              <input type="checkbox"
+                     name="<%= field_name %>"
+                     value="1"
+                     <%= "checked" if raw_value == true || raw_value == "1" || raw_value == 1 %>
+                     class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+              <span class="text-sm font-medium text-gray-700">
+                <%= field.name %><% if field.required? %><span class="text-red-500 ml-0.5">*</span><% end %>
+              </span>
+            </label>
+
+          <% when "combobox" %>
+            <select name="<%= field_name %>"
+                    class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+              <option value="">— select —</option>
+              <% field.choices_for_select.each do |choice| %>
+                <option value="<%= choice %>" <%= "selected" if raw_value.to_s == choice %>><%= choice %></option>
+              <% end %>
+            </select>
+
+          <% when "multi_combobox"
+               selected_vals = Array(raw_value).map(&:to_s).reject(&:blank?)
+               options_json  = field.choices_for_select.map { |c| { id: c, label: c } }.to_json
+               selected_json = selected_vals.map { |v| { id: v, label: v } }.to_json %>
+            <div data-controller="static-combobox"
+                 data-static-combobox-options-value="<%= options_json %>"
+                 data-static-combobox-selected-value="<%= selected_json %>"
+                 data-static-combobox-field-name-value="<%= field_name %>[]"
+                 class="relative">
+              <div data-static-combobox-target="chips" class="flex flex-wrap gap-1.5 mb-1.5"></div>
+              <input type="text"
+                     data-static-combobox-target="input"
+                     data-action="input->static-combobox#onInput focus->static-combobox#onFocus keydown->static-combobox#onKeydown"
+                     placeholder="Search choices…"
+                     autocomplete="off"
+                     class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+              <div data-static-combobox-target="dropdown" hidden
+                   class="combo-dropdown hidden">
+                <ul data-static-combobox-target="list" role="listbox"
+                    class="max-h-48 overflow-y-auto divide-y divide-gray-50"></ul>
+              </div>
+            </div>
+
+          <% when "contact_select"
+               selected_id    = raw_value.to_i.nonzero? ? raw_value.to_i : nil
+               selected_label = selected_id ? Contact.find_by(id: selected_id)&.display_name.to_s : "" %>
+            <div data-controller="contact-combobox"
+                 data-contact-combobox-url-value="<%= search_contacts_path(format: :json) %>"
+                 class="relative">
+              <input type="text"
+                     data-contact-combobox-target="input"
+                     data-action="input->contact-combobox#search keydown->contact-combobox#onKeydown"
+                     value="<%= selected_label %>"
+                     placeholder="Search contacts…"
+                     autocomplete="off"
+                     class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+              <input type="hidden"
+                     data-contact-combobox-target="hiddenField"
+                     name="<%= field_name %>"
+                     value="<%= selected_id %>">
+              <div data-contact-combobox-target="dropdown"
+                   class="combo-dropdown hidden">
+              </div>
+            </div>
+
+          <% when "multi_contact_select"
+               selected_ids      = Array(raw_value).map(&:to_i).reject(&:zero?)
+               selected_contacts = Contact.where(id: selected_ids) %>
+            <div data-controller="contact-chips"
+                 data-contact-chips-search-url-value="<%= search_contacts_path(format: :json) %>"
+                 data-contact-chips-field-name-value="<%= field_name %>[]"
+                 class="relative">
+              <div data-contact-chips-target="chips" class="flex flex-wrap gap-1.5 mb-1.5">
+                <% selected_contacts.each do |contact| %>
+                  <div class="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full text-sm font-medium
+                               bg-violet-50 text-violet-800 border border-violet-200"
+                       data-contact-id="<%= contact.id %>"
+                       data-contact-label="<%= contact.display_name %>">
+                    <span><%= contact.display_name %></span>
+                    <input type="hidden" name="<%= field_name %>[]" value="<%= contact.id %>">
+                    <button type="button"
+                            data-contact-id="<%= contact.id %>"
+                            data-action="click->contact-chips#removeChip"
+                            title="Remove"
+                            class="rounded-full p-0.5 hover:bg-violet-200 text-violet-400 hover:text-violet-700 transition-colors">
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-2.72 2.72a.75.75 0 101.06 1.06L10 11.06l2.72 2.72a.75.75 0 101.06-1.06L11.06 10l2.72-2.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                      </svg>
+                    </button>
+                  </div>
+                <% end %>
+              </div>
+              <input type="text"
+                     data-contact-chips-target="input"
+                     data-action="input->contact-chips#onInput keydown->contact-chips#onKeydown"
+                     placeholder="Search contacts…"
+                     autocomplete="off"
+                     class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+              <div data-contact-chips-target="dropdown"
+                   class="combo-dropdown hidden">
+                <ul data-contact-chips-target="list" role="listbox"
+                    class="max-h-48 overflow-y-auto divide-y divide-gray-50"></ul>
+              </div>
+            </div>
+
+          <% when "company_select"
+               selected_id    = raw_value.to_i.nonzero? ? raw_value.to_i : nil
+               selected_label = selected_id ? Company.find_by(id: selected_id)&.name.to_s : "" %>
+            <div data-controller="company-combobox"
+                 data-company-combobox-url-value="<%= search_companies_path(format: :json) %>"
+                 class="relative">
+              <input type="text"
+                     data-company-combobox-target="input"
+                     data-action="input->company-combobox#search keydown->company-combobox#onKeydown"
+                     value="<%= selected_label %>"
+                     placeholder="Search companies…"
+                     autocomplete="off"
+                     class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+              <input type="hidden"
+                     data-company-combobox-target="hiddenField"
+                     name="<%= field_name %>"
+                     value="<%= selected_id %>">
+              <div data-company-combobox-target="dropdown"
+                   class="combo-dropdown hidden">
+              </div>
+            </div>
+
+          <% when "multi_company_select"
+               selected_ids       = Array(raw_value).map(&:to_i).reject(&:zero?)
+               selected_companies = Company.where(id: selected_ids) %>
+            <div data-controller="company-chips"
+                 data-company-chips-search-url-value="<%= search_companies_path(format: :json) %>"
+                 data-company-chips-field-name-value="<%= field_name %>[]"
+                 class="relative">
+              <div data-company-chips-target="chips" class="flex flex-wrap gap-1.5 mb-1.5">
+                <% selected_companies.each do |company| %>
+                  <div class="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full text-sm font-medium
+                               bg-sky-50 text-sky-800 border border-sky-200"
+                       data-company-id="<%= company.id %>"
+                       data-company-label="<%= company.name %>">
+                    <span><%= company.name %></span>
+                    <input type="hidden" name="<%= field_name %>[]" value="<%= company.id %>">
+                    <button type="button"
+                            data-company-id="<%= company.id %>"
+                            data-action="click->company-chips#removeChip"
+                            title="Remove"
+                            class="rounded-full p-0.5 hover:bg-sky-200 text-sky-400 hover:text-sky-700 transition-colors">
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-2.72 2.72a.75.75 0 101.06 1.06L10 11.06l2.72 2.72a.75.75 0 101.06-1.06L11.06 10l2.72-2.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                      </svg>
+                    </button>
+                  </div>
+                <% end %>
+              </div>
+              <input type="text"
+                     data-company-chips-target="input"
+                     data-action="input->company-chips#onInput keydown->company-chips#onKeydown"
+                     placeholder="Search companies…"
+                     autocomplete="off"
+                     class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+              <div data-company-chips-target="dropdown"
+                   class="combo-dropdown hidden">
+                <ul data-company-chips-target="list" role="listbox"
+                    class="max-h-48 overflow-y-auto divide-y divide-gray-50"></ul>
+              </div>
+            </div>
+
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

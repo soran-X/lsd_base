@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_02_100005) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_03_100003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -325,6 +325,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_100005) do
     t.index ["user_id"], name: "index_conversations_on_user_id"
   end
 
+  create_table "custom_field_values", force: :cascade do |t|
+    t.bigint "book_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "custom_field_id", null: false
+    t.datetime "updated_at", null: false
+    t.jsonb "value_json"
+    t.index ["book_id", "custom_field_id"], name: "index_custom_field_values_on_book_id_and_custom_field_id", unique: true
+    t.index ["book_id"], name: "index_custom_field_values_on_book_id"
+    t.index ["custom_field_id"], name: "index_custom_field_values_on_custom_field_id"
+  end
+
+  create_table "custom_fields", force: :cascade do |t|
+    t.boolean "active", default: true
+    t.jsonb "choices", default: []
+    t.datetime "created_at", null: false
+    t.integer "field_type", null: false
+    t.string "group_name", null: false
+    t.string "name", null: false
+    t.integer "position", default: 0
+    t.boolean "required", default: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "film_activities", force: :cascade do |t|
     t.bigint "book_id", null: false
     t.string "client"
@@ -360,6 +383,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_100005) do
     t.string "category"
     t.text "comments"
     t.datetime "created_at", null: false
+    t.boolean "enable_red_text", default: false, null: false
+    t.string "film_flag"
     t.text "film_option"
     t.date "film_option_date"
     t.text "film_synopsis"
@@ -367,6 +392,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_100005) do
     t.boolean "off", default: false, null: false
     t.boolean "pub_buzz", default: false, null: false
     t.text "readers_thoughts"
+    t.text "red_text"
     t.datetime "updated_at", null: false
     t.index ["book_id"], name: "index_film_trackings_on_book_id", unique: true
   end
@@ -436,6 +462,43 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_100005) do
     t.index ["user_id"], name: "index_recovery_codes_on_user_id"
   end
 
+  create_table "report_books", force: :cascade do |t|
+    t.bigint "book_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "position", default: 0, null: false
+    t.bigint "report_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["book_id"], name: "index_report_books_on_book_id"
+    t.index ["report_id", "book_id"], name: "index_report_books_on_report_id_and_book_id", unique: true
+    t.index ["report_id", "position"], name: "index_report_books_on_report_id_and_position"
+    t.index ["report_id"], name: "index_report_books_on_report_id"
+  end
+
+  create_table "report_client_types", force: :cascade do |t|
+    t.bigint "client_type_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "report_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_type_id"], name: "index_report_client_types_on_client_type_id"
+    t.index ["report_id", "client_type_id"], name: "index_report_client_types_on_report_id_and_client_type_id", unique: true
+    t.index ["report_id"], name: "index_report_client_types_on_report_id"
+  end
+
+  create_table "reports", force: :cascade do |t|
+    t.text "body"
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.text "footer"
+    t.boolean "pinned", default: false, null: false
+    t.text "rendered_content"
+    t.date "report_date"
+    t.integer "report_type", default: 0, null: false
+    t.boolean "sent", default: false, null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_reports_on_created_by_id"
+  end
+
   create_table "role_permissions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "permission_id", null: false
@@ -483,6 +546,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_100005) do
     t.string "name", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_territories_on_name", unique: true
+  end
+
+  create_table "user_client_types", force: :cascade do |t|
+    t.bigint "client_type_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["client_type_id"], name: "index_user_client_types_on_client_type_id"
+    t.index ["user_id", "client_type_id"], name: "index_user_client_types_on_user_id_and_client_type_id", unique: true
+    t.index ["user_id"], name: "index_user_client_types_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -539,6 +612,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_100005) do
   add_foreign_key "contact_companies", "contacts"
   add_foreign_key "contacts", "users", column: "tracked_by_id"
   add_foreign_key "conversations", "users"
+  add_foreign_key "custom_field_values", "books"
+  add_foreign_key "custom_field_values", "custom_fields"
   add_foreign_key "film_activities", "books"
   add_foreign_key "film_activities", "companies"
   add_foreign_key "film_tracking_genres", "film_genres"
@@ -551,8 +626,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_100005) do
   add_foreign_key "readers_reports", "users", column: "reader_id"
   add_foreign_key "reading_materials", "books"
   add_foreign_key "recovery_codes", "users"
+  add_foreign_key "report_books", "books"
+  add_foreign_key "report_books", "reports"
+  add_foreign_key "report_client_types", "client_types"
+  add_foreign_key "report_client_types", "reports"
+  add_foreign_key "reports", "users", column: "created_by_id"
   add_foreign_key "role_permissions", "permissions"
   add_foreign_key "role_permissions", "roles"
   add_foreign_key "sessions", "users"
+  add_foreign_key "user_client_types", "client_types"
+  add_foreign_key "user_client_types", "users"
   add_foreign_key "users", "roles"
 end

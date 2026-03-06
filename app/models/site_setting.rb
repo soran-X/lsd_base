@@ -16,6 +16,7 @@ class SiteSetting < ApplicationRecord
     "company_website"        => "",
     "company_address"        => "",
     "company_contact_person" => "",
+    "report_company_header"  => "true",
     "book_list_view"         => "table",
     "book_history_visibility" => "staff"
   }.freeze
@@ -72,6 +73,10 @@ class SiteSetting < ApplicationRecord
   # Usage: SiteSetting.company_detail(:name), SiteSetting.company_detail(:email)
   def self.company_detail(key)
     self["company_#{key}"].presence
+  end
+
+  def self.report_company_header?
+    enabled?("report_company_header")
   end
 
   def reset_to_default!

@@ -66,8 +66,24 @@ Rails.application.routes.draw do
     end
   end
 
+  # Global search
+  get "search", to: "search#index", defaults: { format: :json }, as: :global_search
+
+  # Reports
+  resources :reports do
+    member do
+      get  :render_html
+      get  :edit_display
+      patch :update_display
+      post  :reset_display
+      patch :reorder
+    end
+  end
+
   # Scaffolded content resources
-  resources :books
+  resources :books do
+    collection { get :search, defaults: { format: :json } }
+  end
   resources :book_searches, only: %i[index new create show destroy]
   resources :authors do
     collection { get :search, defaults: { format: :json } }
@@ -80,6 +96,7 @@ Rails.application.routes.draw do
   end
   resources :company_types
   resources :territories
+  resources :custom_fields
 
   # Dashboard & misc
   get  "dashboard",        to: "home#dashboard", as: :dashboard

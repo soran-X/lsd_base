@@ -1,5 +1,8 @@
 class TerritoriesController < ApplicationController
-  before_action :require_admin
+  before_action -> { authorize!(:index,   :territories) }, only: %i[index]
+  before_action -> { authorize!(:new,     :territories) }, only: %i[new create]
+  before_action -> { authorize!(:edit,    :territories) }, only: %i[edit update]
+  before_action -> { authorize!(:destroy, :territories) }, only: %i[destroy]
   before_action :set_territory, only: %i[edit update destroy]
 
   def index
@@ -43,9 +46,5 @@ class TerritoriesController < ApplicationController
 
   def territory_params
     params.expect(territory: [:name])
-  end
-
-  def require_admin
-    redirect_to root_path, alert: "Not authorized." unless Current.user.hierarchy_level >= 50
   end
 end

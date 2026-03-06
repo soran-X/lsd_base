@@ -22,48 +22,130 @@
 
   <%# Results table %>
   <% if @results.any? %>
-    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-gray-100 bg-gray-50">
-            <th class="px-4 py-3 text-left font-semibold text-gray-600">Title</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600 hidden md:table-cell">Author(s)</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600 hidden sm:table-cell">Status</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600 hidden lg:table-cell">Updated</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          <% @results.each do |book| %>
-            <tr class="hover:bg-gray-50 transition-colors">
-              <td class="px-4 py-3">
-                <%= link_to book_path(book),
-                      class: "font-medium text-indigo-600 hover:text-indigo-800 transition-colors" do %>
-                  <%= book.title %>
-                  <% if book.subtitle.present? %>
-                    <span class="text-gray-400 font-normal">: <%= book.subtitle %></span>
-                  <% end %>
-                  <% if book.confidential? %>
-                    <span class="ml-1.5 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Confidential</span>
-                  <% end %>
-                <% end %>
-              </td>
-              <td class="px-4 py-3 text-gray-500 hidden md:table-cell">
-                <%= book.display_authors.presence || "—" %>
-              </td>
-              <td class="px-4 py-3 hidden sm:table-cell">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
-                             <%= book_status_badge_classes(book.status) %>">
-                  <%= book.status.humanize %>
-                </span>
-              </td>
-              <td class="px-4 py-3 text-gray-400 text-xs hidden lg:table-cell">
-                <%= book.updated_at.strftime("%b %-d, %Y") %>
-              </td>
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <span id="book-selection-count" class="text-sm text-gray-500"></span>
+        <button type="button"
+                id="book-create-report-btn"
+                data-url="<%= new_report_path %>"
+                disabled
+                class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg
+                       hover:bg-indigo-700 transition-colors opacity-40 cursor-not-allowed">
+          Create Report from Selected
+        </button>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-100 bg-gray-50">
+              <th class="px-4 py-3 w-8">
+                <input type="checkbox"
+                       id="book-select-all"
+                       class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+              </th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600">Title</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 hidden md:table-cell">Author(s)</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 hidden sm:table-cell">Status</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600 hidden lg:table-cell">Updated</th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <% @results.each do |book| %>
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-4 py-3">
+                  <input type="checkbox"
+                         class="book-row-cb rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                         data-book-id="<%= book.id %>">
+                </td>
+                <td class="px-4 py-3">
+                  <%= link_to book_path(book),
+                        class: "font-medium text-indigo-600 hover:text-indigo-800 transition-colors" do %>
+                    <%= book.title %>
+                    <% if book.subtitle.present? %>
+                      <span class="text-gray-400 font-normal">: <%= book.subtitle %></span>
+                    <% end %>
+                    <% if book.confidential? %>
+                      <span class="ml-1.5 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Confidential</span>
+                    <% end %>
+                  <% end %>
+                </td>
+                <td class="px-4 py-3 text-gray-500 hidden md:table-cell">
+                  <%= book.display_authors.presence || "—" %>
+                </td>
+                <td class="px-4 py-3 hidden sm:table-cell">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                               <%= book_status_badge_classes(book.status) %>">
+                    <%= book.status.humanize %>
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-gray-400 text-xs hidden lg:table-cell">
+                  <%= book.updated_at.strftime("%b %-d, %Y") %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
     </div>
+
+    <script>
+      (function() {
+        function initBookSelection() {
+          var selectAll = document.getElementById("book-select-all");
+          var countEl   = document.getElementById("book-selection-count");
+          var btn       = document.getElementById("book-create-report-btn");
+          if (!selectAll || !btn) return;
+
+          function getCheckboxes() {
+            return Array.from(document.querySelectorAll(".book-row-cb"));
+          }
+
+          function updateUI() {
+            var checked = getCheckboxes().filter(function(cb) { return cb.checked; });
+            var n = checked.length;
+            if (n === 0) {
+              countEl.textContent = "";
+              btn.disabled = true;
+              btn.classList.add("opacity-40", "cursor-not-allowed");
+              btn.classList.remove("opacity-100", "cursor-pointer");
+            } else {
+              countEl.textContent = n + " book" + (n === 1 ? "" : "s") + " selected";
+              btn.disabled = false;
+              btn.classList.remove("opacity-40", "cursor-not-allowed");
+              btn.classList.add("opacity-100", "cursor-pointer");
+            }
+            var all = getCheckboxes();
+            selectAll.indeterminate = n > 0 && n < all.length;
+            selectAll.checked = all.length > 0 && n === all.length;
+          }
+
+          selectAll.addEventListener("change", function() {
+            getCheckboxes().forEach(function(cb) { cb.checked = selectAll.checked; });
+            updateUI();
+          });
+
+          document.addEventListener("change", function(e) {
+            if (e.target && e.target.classList.contains("book-row-cb")) updateUI();
+          });
+
+          btn.addEventListener("click", function() {
+            var ids = getCheckboxes()
+              .filter(function(cb) { return cb.checked; })
+              .map(function(cb) { return cb.dataset.bookId; });
+            if (!ids.length) return;
+            var base = btn.dataset.url;
+            var qs = ids.map(function(id) { return "book_ids[]=" + id; }).join("&");
+            window.location.href = base + "?" + qs;
+          });
+
+          updateUI();
+        }
+
+        initBookSelection();
+        document.addEventListener("turbo:load", initBookSelection);
+      })();
+    </script>
   <% else %>
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center text-gray-400">
       No books matched your search criteria.
@@ -85,6 +167,8 @@
             genres:               @genres,
             sub_genres:           @sub_genres,
             client_types:         @client_types,
+            custom_fields:        @custom_fields,
+            saved_cf_labels:      @saved_cf_labels,
             saved_authors:        @saved_authors,
             saved_scouts:         @saved_scouts,
             saved_readers:        @saved_readers,

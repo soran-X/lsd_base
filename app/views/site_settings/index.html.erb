@@ -199,6 +199,24 @@
         <%= f.submit "Save Company Details",
             class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
       </div>
+
+      <%# Report header toggle %>
+      <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+        <div>
+          <p class="text-sm font-medium text-gray-700">Include Company Details in Report</p>
+          <p class="text-xs text-gray-400 mt-0.5">Show company name and contact info at the top of printed reports.</p>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" name="report_company_header" value="true"
+                 <%= SiteSetting.report_company_header? ? "checked" : "" %>
+                 class="sr-only peer">
+          <div class="relative w-9 h-5 rounded-full transition-colors bg-gray-200
+                      peer-checked:bg-indigo-600
+                      after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                      after:h-4 after:w-4 after:bg-white after:rounded-full after:shadow
+                      after:transition-transform peer-checked:after:translate-x-4"></div>
+        </label>
+      </div>
     <% end %>
   </div>
 
@@ -306,7 +324,10 @@
   </div>
 
   <%# ── Raw Settings ─────────────────────────────────────────────────────── %>
-  <% general_settings = @site_settings.reject { |s| s.key.start_with?("company_") } %>
+  <%# Keys already managed by the panels above — hide them from the raw table %>
+  <% managed_keys = %w[app_name app_logo favicon_icon primary_color secondary_color tertiary_color
+                        book_list_view book_history_visibility] %>
+  <% general_settings = @site_settings.reject { |s| s.key.start_with?("company_") || managed_keys.include?(s.key) } %>
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-100">
       <h2 class="text-base font-semibold text-gray-900">All Settings</h2>

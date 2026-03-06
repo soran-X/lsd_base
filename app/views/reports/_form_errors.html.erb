@@ -1,0 +1,10 @@
+<% if report.errors.any? %>
+  <div class="mb-5 rounded-lg bg-red-50 border border-red-200 p-4">
+    <p class="text-sm font-medium text-red-700 mb-1"><%= pluralize(report.errors.count, "error") %> prevented this report from being saved:</p>
+    <ul class="list-disc list-inside text-sm text-red-600 space-y-0.5">
+      <% report.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

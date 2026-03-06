@@ -1,5 +1,8 @@
 class GenresController < ApplicationController
-  before_action :require_admin
+  before_action -> { authorize!(:index,   :genres) }, only: %i[index]
+  before_action -> { authorize!(:new,     :genres) }, only: %i[new create]
+  before_action -> { authorize!(:edit,    :genres) }, only: %i[edit update]
+  before_action -> { authorize!(:destroy, :genres) }, only: %i[destroy]
   before_action :set_genre, only: %i[edit update destroy]
 
   def index
@@ -43,9 +46,5 @@ class GenresController < ApplicationController
 
   def genre_params
     params.expect(genre: [:name])
-  end
-
-  def require_admin
-    redirect_to root_path, alert: "Not authorized." unless Current.user.hierarchy_level >= 50
   end
 end

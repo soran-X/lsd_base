@@ -1,4 +1,4 @@
-<%# locals: (book_search:, genres:, sub_genres:, client_types:,
+<%# locals: (book_search:, genres:, sub_genres:, client_types:, custom_fields: [], saved_cf_labels: {},
              saved_authors: [], saved_scouts: [], saved_readers: [],
              saved_agencies: [], saved_film_agencies: [],
              saved_publishers: [], saved_editors: [],
@@ -254,6 +254,32 @@
                       focus:outline-none focus:ring-2 focus:ring-indigo-500",
               placeholder: "e.g. France" %>
       </div>
+
+      <%# Custom Field Filters -%>
+      <% if local_assigns.fetch(:custom_fields, []).any? %>
+        <%
+          cf_fields_json = custom_fields.map { |f|
+            { id: f.id, name: f.name, field_type: f.field_type, choices: f.choices_for_select }
+          }.to_json
+          cf_saved_json  = local_assigns.fetch(:saved_cf_labels, {}).to_json
+        %>
+        <div data-controller="custom-field-filter"
+             data-custom-field-filter-fields-value="<%= cf_fields_json %>"
+             data-custom-field-filter-saved-value="<%= cf_saved_json %>"
+             data-custom-field-filter-contact-search-url-value="<%= search_contacts_path %>"
+             data-custom-field-filter-company-search-url-value="<%= search_companies_path %>">
+          <p class="text-sm font-semibold text-gray-700 mb-2">Custom Field Filters</p>
+          <div data-custom-field-filter-target="rows" class="space-y-2 mb-2"></div>
+          <button type="button"
+                  data-action="click->custom-field-filter#addRow"
+                  class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add field filter
+          </button>
+        </div>
+      <% end %>
 
     </div>
 

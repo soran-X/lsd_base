@@ -2,8 +2,8 @@
 <div data-tab-target="panel" data-tab="notes" class="hidden px-6 py-6 space-y-6">
 
   <%# ── Material Notes ─────────────────────────────────────────────── %>
-  <div class="rounded-lg border border-gray-200 overflow-hidden" data-controller="nested-form">
-    <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
+  <div class="field-group" data-controller="nested-form">
+    <div class="field-group-header flex items-center justify-between">
       <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Material Notes</p>
       <label class="flex items-center gap-2 cursor-pointer select-none">
         <%= f.check_box :material_to_read, class: "sr-only peer" %>
@@ -99,8 +99,8 @@
   </div>
 
   <%# ── Client Activity Notes ──────────────────────────────────────── %>
-  <div class="rounded-lg border border-gray-200" data-controller="nested-form">
-    <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200 rounded-t-lg">
+  <div class="field-group" data-controller="nested-form">
+    <div class="field-group-header">
       <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Client Activity Notes</p>
     </div>
 
@@ -141,8 +141,7 @@
                      value="<%= ca.object.company_id %>"
                      data-company-combobox-target="hiddenField" />
               <div data-company-combobox-target="dropdown"
-                   class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
-                          border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+                   class="combo-dropdown hidden max-h-52 overflow-y-auto"></div>
             </div>
             <div class="flex gap-2 items-end">
               <div class="flex-1 relative"
@@ -162,8 +161,7 @@
                        value="<%= ca.object.contact_id %>"
                        data-contact-combobox-target="hiddenField" />
                 <div data-contact-combobox-target="dropdown"
-                     class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
-                            border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+                     class="combo-dropdown hidden max-h-52 overflow-y-auto"></div>
               </div>
               <button type="button" data-action="nested-form#remove"
                       class="shrink-0 text-xs text-red-400 hover:text-red-600 pb-2.5 transition-colors">Remove</button>
@@ -216,8 +214,7 @@
                      value=""
                      data-company-combobox-target="hiddenField" />
               <div data-company-combobox-target="dropdown"
-                   class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
-                          border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+                   class="combo-dropdown hidden max-h-52 overflow-y-auto"></div>
             </div>
             <div class="flex gap-2 items-end">
               <div class="flex-1 relative"
@@ -237,8 +234,7 @@
                        value=""
                        data-contact-combobox-target="hiddenField" />
                 <div data-contact-combobox-target="dropdown"
-                     class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg border
-                            border-gray-200 shadow-lg overflow-hidden max-h-52 overflow-y-auto"></div>
+                     class="combo-dropdown hidden max-h-52 overflow-y-auto"></div>
               </div>
               <button type="button" data-action="nested-form#remove"
                       class="shrink-0 text-xs text-red-400 hover:text-red-600 pb-2.5 transition-colors">Remove</button>
@@ -263,8 +259,8 @@
   </div>
 
   <%# ── Memo History ────────────────────────────────────────────────── %>
-  <div class="rounded-lg border border-gray-200 overflow-hidden" data-controller="nested-form">
-    <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200">
+  <div class="field-group" data-controller="nested-form">
+    <div class="field-group-header">
       <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Memo History</p>
     </div>
 
@@ -327,8 +323,8 @@
   </div>
 
   <%# ── Archive Notes ───────────────────────────────────────────────── %>
-  <div class="rounded-lg border border-gray-200 overflow-hidden" data-controller="nested-form">
-    <div class="bg-gray-50 px-4 py-2.5 border-b border-gray-200">
+  <div class="field-group" data-controller="nested-form">
+    <div class="field-group-header">
       <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Archive Notes</p>
     </div>
 

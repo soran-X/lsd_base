@@ -45,6 +45,31 @@
         <p class="text-xs text-gray-400 mt-1 ml-7">Approved users can access the dashboard.</p>
       </div>
 
+      <%# Client Types — shown for roles with hierarchy < 50 (Clients / Scouts) %>
+      <% target_role = Role.find_by(id: @user.role_id) %>
+      <% if target_role.nil? || target_role.hierarchy_level < 50 %>
+        <div>
+          <%= f.label :client_type_ids, "Client Types", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <p class="text-xs text-gray-400 mb-2">Clients see only reports assigned to these client types.</p>
+          <div data-controller="tag-select"
+               data-tag-select-selected-value="<%= @user.client_types.map { |ct| { id: ct.id, name: ct.name } }.to_json %>"
+               data-tag-select-field-name-value="user[client_type_ids][]"
+               data-tag-select-color-value="rose">
+            <div data-tag-select-target="tags" class="flex flex-wrap gap-1.5 mb-2 min-h-[1.75rem]"></div>
+            <div data-tag-select-target="inputs"></div>
+            <select data-tag-select-target="select"
+                    data-action="change->tag-select#add"
+                    class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">Add client type…</option>
+              <% @client_types.each do |ct| %>
+                <option value="<%= ct.id %>"><%= ct.name %></option>
+              <% end %>
+            </select>
+          </div>
+        </div>
+      <% end %>
+
       <div class="flex gap-3 pt-2">
         <%= f.submit "Update User",
             class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>

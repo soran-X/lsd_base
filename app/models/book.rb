@@ -77,6 +77,7 @@ class Book < ApplicationRecord
   has_many :book_memos,        dependent: :destroy
   has_many :archive_notes,     dependent: :destroy
   has_many :readers_reports,   dependent: :destroy
+  has_many :custom_field_values, dependent: :destroy
 
   # ── Nested attributes ─────────────────────────────────────────────────────
   accepts_nested_attributes_for :book_updates,    allow_destroy: true, reject_if: :all_blank

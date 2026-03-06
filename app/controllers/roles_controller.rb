@@ -28,8 +28,9 @@ class RolesController < ApplicationController
   end
 
   def edit
-    @all_resources = Permission::ALL_PERMISSIONS.keys
-    @all_actions   = %w[index show new edit destroy]
+    Permission.sync_all!
+    @all_resources  = Permission::ALL_PERMISSIONS.keys
+    @all_actions    = %w[index show new edit destroy]
     @permission_map = Permission.all.index_by { |p| "#{p.resource}:#{p.action}" }
     @granted_ids    = @role.permission_ids.to_set
   end
@@ -44,6 +45,7 @@ class RolesController < ApplicationController
       @role.permission_ids = role_params[:permission_ids] || []
       redirect_to roles_path, notice: "Role updated."
     else
+      Permission.sync_all!
       @all_resources  = Permission::ALL_PERMISSIONS.keys
       @all_actions    = %w[index show new edit destroy]
       @permission_map = Permission.all.index_by { |p| "#{p.resource}:#{p.action}" }

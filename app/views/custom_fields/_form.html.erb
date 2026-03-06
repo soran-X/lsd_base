@@ -1,0 +1,122 @@
+<%= form_with model: custom_field,
+      data: { controller: "custom-field-form" },
+      class: "space-y-5" do |f| %>
+
+  <% if custom_field.errors.any? %>
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+      <ul class="list-disc list-inside space-y-0.5">
+        <% custom_field.errors.full_messages.each do |msg| %><li><%= msg %></li><% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%# Name %>
+  <div>
+    <%= f.label :name, class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :name, autofocus: true,
+          placeholder: "e.g. Contract Date",
+          class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+  </div>
+
+  <%# Group — datalist for autocomplete from existing groups %>
+  <div>
+    <%= f.label :group_name, "Group", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :group_name,
+          list: "cf-group-list",
+          placeholder: "e.g. Rights, Film, Internal",
+          class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+    <datalist id="cf-group-list">
+      <% CustomField.distinct.pluck(:group_name).sort.each do |gn| %>
+        <option value="<%= gn %>">
+      <% end %>
+    </datalist>
+  </div>
+
+  <%# Field Type %>
+  <div>
+    <%= f.label :field_type, "Field Type", class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.select :field_type,
+          CustomField.field_types.keys.map { |k| [k.humanize, k] },
+          { include_blank: "— select type —" },
+          class: "block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
+          data: { "custom-field-form-target": "typeSelect",
+                  action: "change->custom-field-form#typeChanged" } %>
+  </div>
+
+  <%# Position %>
+  <div>
+    <%= f.label :position, class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.number_field :position, min: 0,
+          class: "block w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" %>
+    <p class="text-xs text-gray-400 mt-1">Lower numbers appear first within the group.</p>
+  </div>
+
+  <%# Required %>
+  <div class="flex items-center gap-2">
+    <%= f.check_box :required, class: "rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" %>
+    <%= f.label :required, "Required field", class: "text-sm font-medium text-gray-700" %>
+  </div>
+
+  <%# Active %>
+  <div class="flex items-center gap-2">
+    <%= f.check_box :active, class: "rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" %>
+    <%= f.label :active, "Active (show on book form)", class: "text-sm font-medium text-gray-700" %>
+  </div>
+
+  <%# Choices section — shown only for combobox / multi_combobox %>
+  <div data-custom-field-form-target="choicesSection"
+       class="<%= %w[combobox multi_combobox].include?(custom_field.field_type) ? '' : 'hidden' %>">
+    <p class="block text-sm font-medium text-gray-700 mb-2">Choices</p>
+    <p class="text-xs text-gray-400 mb-3">One choice per line. Users will pick from these options.</p>
+
+    <div data-nested-form-target="container"
+         data-controller="nested-form"
+         class="space-y-2">
+
+      <template data-nested-form-target="template">
+        <div class="flex items-center gap-2" data-nested-form-row>
+          <input type="text"
+                 name="custom_field[choices][]"
+                 placeholder="Choice label"
+                 class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+          <button type="button"
+                  data-action="click->nested-form#remove"
+                  class="text-red-400 hover:text-red-600 text-sm font-medium shrink-0">Remove</button>
+        </div>
+      </template>
+
+      <% Array(custom_field.choices).each do |choice| %>
+        <div class="flex items-center gap-2" data-nested-form-row>
+          <input type="text"
+                 name="custom_field[choices][]"
+                 value="<%= choice %>"
+                 placeholder="Choice label"
+                 class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+          <button type="button"
+                  data-action="click->nested-form#remove"
+                  class="text-red-400 hover:text-red-600 text-sm font-medium shrink-0">Remove</button>
+        </div>
+      <% end %>
+    </div>
+
+    <button type="button"
+            data-action="click->nested-form#add"
+            class="mt-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+      + Add choice
+    </button>
+  </div>
+
+  <%# Actions %>
+  <div class="flex items-center gap-3 pt-2 border-t border-gray-100">
+    <%= f.submit class: "inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white text-sm
+                          font-medium rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer" %>
+    <%= link_to "Cancel", custom_fields_path,
+          class: "text-sm text-gray-500 hover:text-gray-700" %>
+  </div>
+<% end %>

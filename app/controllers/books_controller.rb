@@ -1,4 +1,7 @@
 class BooksController < ApplicationController
+  before_action -> { authorize!(:new,     :books) }, only: %i[new create]
+  before_action -> { authorize!(:edit,    :books) }, only: %i[edit update]
+  before_action -> { authorize!(:destroy, :books) }, only: %i[destroy]
   before_action :set_book, only: %i[show edit update destroy]
 
   # GET /books
@@ -15,21 +18,18 @@ class BooksController < ApplicationController
     table_includes = [ :credited_authors, :translators, :primary_scout ]
 
     if @query.present?
-      scope = Book.kept
-      scope = scope.where(confidential: false) unless Current.user.hierarchy_level >= 50
-      scope = scope.search_globally(@query)
-                   .includes(@catalog_view ? catalog_includes : table_includes)
+      scope = accessible_books.search_globally(@query)
+                               .includes(@catalog_view ? catalog_includes : table_includes)
     else
-      scope = Book.kept
-                  .includes(@catalog_view ? catalog_includes : table_includes)
-                  .order(updated_at: :desc)
+      scope = accessible_books.includes(@catalog_view ? catalog_includes : table_includes)
+                               .order(updated_at: :desc)
     end
     @pagy, @books = pagy(scope)
   end
 
   # GET /books/1
   def show
-    @book = Book.kept
+    @book = accessible_books
                 .includes(:credited_authors, :translators,
                            { film_tracking: :film_genres },
                            :primary_scout, :secondary_scout, :genres, :sub_genres,
@@ -42,6 +42,8 @@ class BooksController < ApplicationController
                            { book_contacts:     :contact },
                            { readers_reports:   [:reader, :reading_material] })
                 .find(params.expect(:id))
+    @custom_fields       = CustomField.active.ordered.to_a
+    @custom_field_values = @book.custom_field_values.index_by(&:custom_field_id)
     history_min_level = case SiteSetting["book_history_visibility"]
                         when "admin" then 50
                         when "all"   then 0
@@ -61,11 +63,13 @@ class BooksController < ApplicationController
   def new
     @book = Book.new
     @book.build_film_tracking
+    @custom_fields = CustomField.active.ordered.to_a
   end
 
   # GET /books/1/edit
   def edit
     @book.film_tracking || @book.build_film_tracking
+    @custom_fields = CustomField.active.ordered.to_a
   end
 
   # POST /books
@@ -77,11 +81,13 @@ class BooksController < ApplicationController
       if @book.save
         assign_book_authors(@book)
         assign_book_companies_and_contacts(@book)
+        save_custom_field_values(@book, params.dig(:book, :custom_fields))
         AuditLog.record(user: Current.user, action: "create", resource: @book,
                         metadata: { title: @book.title }, request: request)
         format.html { redirect_to @book, notice: "Book was successfully created." }
         format.json { render :show, status: :created, location: @book }
       else
+        @custom_fields = CustomField.active.ordered.to_a
         format.html { render :new, status: :unprocessable_entity }
         format.json { render json: @book.errors, status: :unprocessable_entity }
       end
@@ -100,6 +106,7 @@ class BooksController < ApplicationController
       if @book.update(book_params)
         assign_book_authors(@book)
         assign_book_companies_and_contacts(@book)
+        save_custom_field_values(@book, params.dig(:book, :custom_fields))
 
         # ── Scalar field changes ────────────────────────────────────────────
         # Exclude rich-text fields from previous_changes — Trix re-normalises
@@ -160,6 +167,7 @@ class BooksController < ApplicationController
         format.html { redirect_to @book, notice: "Book was successfully updated.", status: :see_other }
         format.json { render :show, status: :ok, location: @book }
       else
+        @custom_fields = CustomField.active.ordered.to_a
         format.html { render :edit, status: :unprocessable_entity }
         format.json { render json: @book.errors, status: :unprocessable_entity }
       end
@@ -179,10 +187,36 @@ class BooksController < ApplicationController
     end
   end
 
+  # GET /books/search.json?q= — used by book-chips multi-select
+  def search
+    q     = params[:q].to_s.strip
+    scope = accessible_books
+    books = q.length >= 2 ? scope.search_globally(q).limit(12) : scope.order(:title).limit(12)
+    render json: books.includes(:credited_authors).map { |b|
+      authors = b.credited_authors.map(&:display_name).join(", ")
+      { id: b.id, label: [ b.title, authors.presence ].compact_blank.join(" — ") }
+    }
+  end
+
   private
 
+  def accessible_books
+    if Current.user.hierarchy_level >= 50
+      Book.kept
+    else
+      user_ct_ids = Current.user.client_type_ids
+      return Book.none if user_ct_ids.empty?
+
+      Book.kept
+          .where(confidential: false)
+          .joins(:book_client_types)
+          .where(book_client_types: { client_type_id: user_ct_ids })
+          .distinct
+    end
+  end
+
   def set_book
-    @book = Book.kept.find(params.expect(:id))
+    @book = accessible_books.find(params.expect(:id))
   end
 
   def book_params
@@ -208,7 +242,7 @@ class BooksController < ApplicationController
         film_tracking_attributes: [
           :id, :film_synopsis, :film_option, :film_option_date,
           :readers_thoughts, :category, :comments, :material,
-          :off, :pub_buzz, :_destroy
+          :film_flag, :enable_red_text, :red_text, :_destroy
         ],
         reading_materials_attributes: [
           [:id, :material, :reader, :number_of_pages, :date, :_destroy]
@@ -309,6 +343,17 @@ class BooksController < ApplicationController
     existing.where.not(company_id: ids).destroy_all
     existing_ids = existing.pluck(:company_id)
     (ids - existing_ids).each { |cid| book.book_companies.create!(company_id: cid, role: role) }
+  end
+
+  def save_custom_field_values(book, cf_params)
+    return if cf_params.blank?
+    cf_params.to_unsafe_h.each do |field_id, value|
+      field = CustomField.find_by(id: field_id.to_i, active: true)
+      next unless field
+      cfv = book.custom_field_values.find_or_initialize_by(custom_field_id: field.id)
+      cfv.value_json = value.presence
+      cfv.save!
+    end
   end
 
   def assign_multi_book_contact(book, role, ids)
