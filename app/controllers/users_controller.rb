@@ -1,7 +1,7 @@
 class UsersController < ApplicationController
   before_action -> { authorize!(:index, :users) }, except: [:search]
-  before_action :set_user, only: %i[show edit update destroy]
-  before_action -> { enforce_hierarchy!(@user) }, only: %i[show edit update destroy]
+  before_action :set_user, only: %i[show edit update destroy resend_invitation]
+  before_action -> { enforce_hierarchy!(@user) }, only: %i[show edit update destroy resend_invitation]
 
   def search
     q = params[:q].to_s.strip
@@ -60,6 +60,11 @@ class UsersController < ApplicationController
       @client_types = ClientType.ordered
       render :edit, status: :unprocessable_entity
     end
+  end
+
+  def resend_invitation
+    UserMailer.with(user: @user).invitation.deliver_later
+    redirect_to user_path(@user), notice: "Invitation resent to #{@user.email}."
   end
 
   def destroy

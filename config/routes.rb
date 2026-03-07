@@ -49,6 +49,7 @@ Rails.application.routes.draw do
   resources :users, only: %i[index show new create edit update destroy] do
     collection { get :search, defaults: { format: :json } }
     resource :approval, only: %i[update], controller: "approvals"
+    member { post :resend_invitation }
   end
   resources :roles
   resources :genres

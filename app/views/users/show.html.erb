@@ -14,8 +14,15 @@
       <% end %>
     </div>
     <% if Current.user.can_manage?(@user) %>
-      <%= link_to "Edit", edit_user_path(@user),
-          class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors" %>
+      <div class="flex items-center gap-2">
+        <% unless @user.verified? %>
+          <%= button_to "Resend Invite", resend_invitation_user_path(@user),
+              method: :post,
+              class: "inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors" %>
+        <% end %>
+        <%= link_to "Edit", edit_user_path(@user),
+            class: "inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors" %>
+      </div>
     <% end %>
   </div>
 </div>
