@@ -31,7 +31,7 @@ services:
       db_lg:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://lsd_lg:password@db_lg:5432/lsd_lg
+      DATABASE_URL: postgres://lsd_lg:password@db_lg:5432/lsd_lg
       RAILS_ENV: development
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
