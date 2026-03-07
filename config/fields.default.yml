@@ -1,0 +1,133 @@
+# =============================================================================
+# Default Field Configuration — all fields enabled with standard labels.
+#
+# To customise an instance, copy this file to config/fields.yml and edit.
+# Rules:
+#   - A field not listed here is disabled everywhere (form, search, reports).
+#   - Omitting a property falls back to the default shown below.
+#   - Group order and field order within groups are preserved in the UI.
+#
+# Per-field properties:
+#   label:      Display name shown throughout the app. (default: built-in name)
+#   required:   Whether the book form treats this field as required. (default: false)
+#   searchable: Whether the field value appears in search result cards. (default: true)
+#
+# Tabs (set to false to hide an entire tab on the book form and show pages):
+#   info, contacts_rights, notes, coverage, film, report
+#   If a tab key is omitted it defaults to true (visible).
+# =============================================================================
+
+tabs:
+  info: true
+  contacts_rights: true
+  notes: true
+  coverage: true
+  film: true
+  report: true
+
+field_groups:
+  - name: Basic Info
+    fields:
+      title:
+        label: Title
+        required: true
+        searchable: true
+      subtitle:
+        label: Subtitle
+        searchable: false
+      old_title:
+        label: Old Title
+        searchable: true
+      status:
+        label: Status
+        searchable: false
+      publication_year:
+        label: Publication Year
+        searchable: false
+      publication_season:
+        label: Publication Season
+        searchable: false
+      genres:
+        label: Genres
+        searchable: false
+      sub_genres:
+        label: Sub-Genres
+        searchable: false
+      lead_title:
+        label: Lead Title
+        searchable: false
+      update_tagline:
+        label: Update Tagline
+        searchable: false
+      pages:
+        label: Pages
+        searchable: false
+      format:
+        label: Format
+        searchable: false
+
+  - name: Companies & Contacts
+    fields:
+      publisher:
+        label: Publisher
+        searchable: true
+      agency:
+        label: Literary Agency
+        searchable: true
+      agents:
+        label: Literary Agent(s)
+        searchable: true
+      film_agency:
+        label: Film Agency
+        searchable: true
+      film_agents:
+        label: Film Agent(s)
+        searchable: true
+      subagents:
+        label: Subagents
+        searchable: false
+
+  - name: Content
+    fields:
+      synopsis:
+        label: Synopsis
+        searchable: true
+      log_line:
+        label: Log Line
+        searchable: false
+      pub_info:
+        label: Pub Info
+        searchable: false
+      material:
+        label: Material
+        searchable: false
+      rights_sold:
+        label: Rights Sold
+        searchable: false
+
+  - name: Scouts
+    fields:
+      primary_scout:
+        label: Primary Scout
+        searchable: false
+      secondary_scout:
+        label: Secondary Scout
+        searchable: false
+
+  - name: Film Tracking
+    fields:
+      film_flag:
+        label: Film Flag
+        searchable: false
+      film_synopsis:
+        label: Film Synopsis
+        searchable: false
+      film_option:
+        label: Film Option
+        searchable: false
+      readers_thoughts:
+        label: Reader's Thoughts
+        searchable: false
+      film_genre:
+        label: Film Genre
+        searchable: false

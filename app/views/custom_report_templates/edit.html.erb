@@ -1,0 +1,14 @@
+<% content_for :title, "Edit #{@template.name}" %>
+
+<div class="mb-6">
+  <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+    <%= link_to "Report Templates", custom_report_templates_path, class: "hover:text-gray-700" %>
+    <span>/</span>
+    <span class="text-gray-900 truncate max-w-xs"><%= @template.name %></span>
+  </div>
+  <h1 class="text-2xl font-bold text-gray-900">Edit Template</h1>
+</div>
+
+<div class="max-w-3xl">
+  <%= render "form", template: @template %>
+</div>

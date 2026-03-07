@@ -9,11 +9,11 @@
     <%= render "books/form/tabs_nav" %>
 
     <%= render "books/form/panel_info", f: f, book: book %>
-    <%= render "books/form/panel_contacts_rights", f: f, book: book %>
-    <%= render "books/form/panel_notes", f: f, book: book %>
-    <%= render "books/form/panel_coverage", f: f, book: book %>
-    <%= render "books/form/panel_film", f: f, book: book %>
-    <%= render "books/form/panel_report", f: f, book: book %>
+    <%= render "books/form/panel_contacts_rights", f: f, book: book if InstanceConfig.tab_enabled?("contacts_rights") %>
+    <%= render "books/form/panel_notes", f: f, book: book if InstanceConfig.tab_enabled?("notes") %>
+    <%= render "books/form/panel_coverage", f: f, book: book if InstanceConfig.tab_enabled?("coverage") %>
+    <%= render "books/form/panel_film", f: f, book: book if InstanceConfig.tab_enabled?("film") %>
+    <%= render "books/form/panel_report", f: f, book: book if InstanceConfig.tab_enabled?("report") %>
 
     <% if defined?(@custom_fields) && @custom_fields&.any? %>
       <div data-tab-target="panel" data-tab="custom_fields"

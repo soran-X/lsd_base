@@ -69,6 +69,9 @@ Rails.application.routes.draw do
   # Global search
   get "search", to: "search#index", defaults: { format: :json }, as: :global_search
 
+  # Custom report templates
+  resources :custom_report_templates
+
   # Reports
   resources :reports do
     member do

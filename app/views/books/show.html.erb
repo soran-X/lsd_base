@@ -33,6 +33,7 @@
         ["contacts_rights", "Contacts & Rights"],
         ["report",          "Reader\u2019s Report"],
       ].each do |key, label| %>
+        <% next unless InstanceConfig.tab_enabled?(key) %>
         <button type="button"
                 role="tab"
                 data-tab-target="tab"
@@ -299,6 +300,7 @@
   </div>
 
   <%# ── Tab: Notes ──────────────────────────────────────────────────────────── %>
+  <% if InstanceConfig.tab_enabled?("notes") %>
   <div data-tab-target="panel" data-tab="notes" class="hidden px-6 py-6 space-y-6">
 
     <%# ── Material Notes ───────────────────────────────────────────────── %>
@@ -424,8 +426,10 @@
     </div>
 
   </div>
+  <% end %>
 
   <%# ── Tab: Scout Coverage ─────────────────────────────────────────────────── %>
+  <% if InstanceConfig.tab_enabled?("coverage") %>
   <div data-tab-target="panel" data-tab="coverage" class="hidden px-6 py-6">
     <div class="text-center py-12 text-sm text-gray-400">
       <svg class="w-10 h-10 mx-auto mb-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -435,8 +439,10 @@
       Scout Coverage will appear here once reports are linked to this book.
     </div>
   </div>
+  <% end %>
 
   <%# ── Tab: Film ──────────────────────────────────────────────────── %>
+  <% if InstanceConfig.tab_enabled?("film") %>
   <div data-tab-target="panel" data-tab="film" class="hidden px-6 py-6 space-y-6">
     <% ft = @book.film_tracking %>
     <% if ft.nil? %>
@@ -482,8 +488,10 @@
       <%= render "film_info", ft: ft %>
     <% end %>
   </div>
+  <% end %>
 
   <%# ── Tab: Contacts & Rights ───────────────────────────────────── %>
+  <% if InstanceConfig.tab_enabled?("contacts_rights") %>
   <div data-tab-target="panel" data-tab="contacts_rights" class="hidden px-6 py-6 space-y-6">
 
     <%# ── Associated Companies & Contacts %>
@@ -587,7 +595,10 @@
     </div>
 
   </div>
+  <% end %>
+
   <%# ── Tab: Reader’s Report ────────────────────────────────────────────────── %>
+  <% if InstanceConfig.tab_enabled?("report") %>
   <div data-tab-target="panel" data-tab="report" class="hidden px-6 py-6 space-y-4">
 
     <%# Section header with confidential badge %>
@@ -674,6 +685,7 @@
     <% end %>
 
   </div>
+  <% end %>
 
   <%# ── Tab: Custom Fields ──────────────────────────────────────────────────── %>
   <% if defined?(@custom_fields) && @custom_fields&.any? %>

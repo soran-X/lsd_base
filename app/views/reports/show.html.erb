@@ -91,6 +91,68 @@
       <% end %>
     </div>
 
+    <% if @report.custom? %>
+      <%# Custom report: group by custom_section in template order %>
+      <% tpl = @report.custom_report_template %>
+      <% section_names = tpl&.sections&.map(&:name) || [] %>
+      <% rb_by_section = @report_books.group_by { |rb| rb.custom_section.presence || "" } %>
+      <%
+        ordered_groups = section_names.map { |name| [name, rb_by_section[name] || []] }
+        ungrouped = rb_by_section[""] || []
+        ungrouped += rb_by_section.except(*section_names, "").values.flatten
+        ordered_groups << ["", ungrouped] if ungrouped.any?
+      %>
+      <% ordered_groups.each do |sec_name, rbs| %>
+        <% next if rbs.empty? %>
+        <% if sec_name.present? %>
+          <h2 class="text-base font-bold text-gray-800 mt-6 mb-2 pb-1 border-b-2 border-gray-300 uppercase tracking-wide">
+            <%= sec_name %>
+          </h2>
+        <% end %>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-3">
+          <table class="min-w-full divide-y divide-gray-100 text-sm">
+            <thead class="bg-indigo-50">
+              <tr>
+                <% if is_admin %><th class="w-8 px-2 py-2"></th><% end %>
+                <th class="px-4 py-2 text-left text-xs font-medium text-indigo-700">#</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-indigo-700">Title</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-indigo-700">Authors</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-indigo-700">Scouts</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100"
+                   data-report-sort-target="tbody"
+                   <% if is_admin %>data-action="dragover->report-sort#dragOver drop->report-sort#drop"<% end %>>
+              <% rbs.each_with_index do |rb, i| %>
+                <tr data-book-id="<%= rb.book_id %>"
+                    <% if is_admin %>draggable="true" data-action="dragstart->report-sort#dragStart dragend->report-sort#dragEnd"<% end %>
+                    class="hover:bg-gray-50 transition-colors<% if is_admin %> cursor-grab active:cursor-grabbing<% end %>">
+                  <% if is_admin %>
+                    <td class="px-2 py-2.5 w-8 text-gray-300 hover:text-gray-500 transition-colors" title="Drag to reorder">
+                      <svg class="w-4 h-4 mx-auto" viewBox="0 0 16 16" fill="currentColor">
+                        <circle cx="5" cy="4" r="1.25"/><circle cx="11" cy="4" r="1.25"/>
+                        <circle cx="5" cy="8" r="1.25"/><circle cx="11" cy="8" r="1.25"/>
+                        <circle cx="5" cy="12" r="1.25"/><circle cx="11" cy="12" r="1.25"/>
+                      </svg>
+                    </td>
+                  <% end %>
+                  <td class="px-4 py-2.5 text-gray-400 tabular-nums" data-row-number><%= i + 1 %></td>
+                  <td class="px-4 py-2.5 font-medium text-gray-900">
+                    <%= link_to rb.book.title, book_path(rb.book), class: "hover:text-indigo-600 transition-colors" %>
+                  </td>
+                  <td class="px-4 py-2.5 text-gray-600">
+                    <%= rb.book.credited_authors.map(&:display_name).join(", ").presence || "—" %>
+                  </td>
+                  <td class="px-4 py-2.5 text-gray-500 text-xs">
+                    <%= [ rb.book.primary_scout&.display_name, rb.book.secondary_scout&.display_name ].compact_blank.join(", ").presence || "—" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    <% else %>
     <% grouped = group_report_books_for_show(@report, @report_books) %>
     <% grouped.each do |cat_group| %>
 
@@ -186,6 +248,7 @@
 
         <% end %>
       <% end %>
+    <% end %>
     <% end %>
 
   </div>

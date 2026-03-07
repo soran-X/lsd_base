@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_03_100003) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_07_174344) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -176,6 +176,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_03_100003) do
     t.date "delivery_date"
     t.datetime "discarded_at"
     t.date "followup_date"
+    t.string "format"
     t.bigint "last_updated_by_id"
     t.boolean "lead_title", default: false, null: false
     t.text "log_line"
@@ -186,6 +187,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_03_100003) do
     t.text "notes"
     t.text "notes_plain"
     t.string "old_title"
+    t.integer "pages"
     t.bigint "primary_scout_id"
     t.text "pub_info"
     t.text "pub_info_plain"
@@ -348,6 +350,33 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_03_100003) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "custom_report_template_fields", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "custom_report_template_id", null: false
+    t.string "field_key", null: false
+    t.integer "position", default: 0
+    t.datetime "updated_at", null: false
+    t.index ["custom_report_template_id"], name: "idx_on_custom_report_template_id_37ea792b8a"
+  end
+
+  create_table "custom_report_template_sections", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "custom_report_template_id", null: false
+    t.string "name", null: false
+    t.integer "position", default: 0
+    t.datetime "updated_at", null: false
+    t.index ["custom_report_template_id"], name: "idx_on_custom_report_template_id_018db7e7d1"
+  end
+
+  create_table "custom_report_templates", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_custom_report_templates_on_created_by_id"
+    t.index ["name"], name: "index_custom_report_templates_on_name", unique: true
+  end
+
   create_table "film_activities", force: :cascade do |t|
     t.bigint "book_id", null: false
     t.string "client"
@@ -465,6 +494,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_03_100003) do
   create_table "report_books", force: :cascade do |t|
     t.bigint "book_id", null: false
     t.datetime "created_at", null: false
+    t.string "custom_section"
     t.integer "position", default: 0, null: false
     t.bigint "report_id", null: false
     t.datetime "updated_at", null: false
@@ -488,6 +518,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_03_100003) do
     t.text "body"
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
+    t.bigint "custom_report_template_id"
     t.text "footer"
     t.boolean "pinned", default: false, null: false
     t.text "rendered_content"
@@ -497,6 +528,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_03_100003) do
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.index ["created_by_id"], name: "index_reports_on_created_by_id"
+    t.index ["custom_report_template_id"], name: "index_reports_on_custom_report_template_id"
   end
 
   create_table "role_permissions", force: :cascade do |t|
@@ -614,6 +646,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_03_100003) do
   add_foreign_key "conversations", "users"
   add_foreign_key "custom_field_values", "books"
   add_foreign_key "custom_field_values", "custom_fields"
+  add_foreign_key "custom_report_template_fields", "custom_report_templates"
+  add_foreign_key "custom_report_template_sections", "custom_report_templates"
+  add_foreign_key "custom_report_templates", "users", column: "created_by_id"
   add_foreign_key "film_activities", "books"
   add_foreign_key "film_activities", "companies"
   add_foreign_key "film_tracking_genres", "film_genres"
@@ -630,6 +665,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_03_100003) do
   add_foreign_key "report_books", "reports"
   add_foreign_key "report_client_types", "client_types"
   add_foreign_key "report_client_types", "reports"
+  add_foreign_key "reports", "custom_report_templates"
   add_foreign_key "reports", "users", column: "created_by_id"
   add_foreign_key "role_permissions", "permissions"
   add_foreign_key "role_permissions", "roles"

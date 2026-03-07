@@ -28,6 +28,7 @@ class ReportsController < ApplicationController
   end
 
   def create
+    parse_custom_report_type!
     @report            = Report.new(report_params)
     @report.created_by = Current.user
 
@@ -48,6 +49,7 @@ class ReportsController < ApplicationController
   end
 
   def update
+    parse_custom_report_type!
     if @report.update(report_params)
       sync_client_types(@report)
       sync_books(@report)
@@ -114,7 +116,7 @@ class ReportsController < ApplicationController
   end
 
   def report_params
-    params.require(:report).permit(:title, :body, :footer, :report_type, :report_date, :sent, :pinned)
+    params.require(:report).permit(:title, :body, :footer, :report_type, :report_date, :sent, :pinned, :custom_report_template_id)
   end
 
   def sync_client_types(report)
@@ -124,9 +126,35 @@ class ReportsController < ApplicationController
   end
 
   def sync_books(report)
-    ids = Array(params.dig(:report, :book_ids)).map(&:to_i).select(&:positive?)
     report.report_books.destroy_all
-    ids.each_with_index { |id, i| report.report_books.create!(book_id: id, position: i) }
+
+    if report.custom? && params.dig(:report, :section_books).present?
+      # section_books: { "Section Name" => ["book_id", ...] }
+      # A book can only appear once per report (unique constraint on report_id+book_id),
+      # so deduplicate globally first, keeping the first section each book appears in.
+      position = 0
+      seen_ids = {}
+      params[:report][:section_books].each do |section_name, book_ids|
+        Array(book_ids).map(&:to_i).select(&:positive?).each do |id|
+          next if seen_ids.key?(id)
+          seen_ids[id] = true
+          report.report_books.create!(book_id: id, position: position, custom_section: section_name)
+          position += 1
+        end
+      end
+    else
+      ids = Array(params.dig(:report, :book_ids)).map(&:to_i).select(&:positive?)
+      ids.each_with_index { |id, i| report.report_books.create!(book_id: id, position: i) }
+    end
+  end
+
+  def parse_custom_report_type!
+    type_val = params.dig(:report, :report_type).to_s
+    return unless type_val.start_with?("custom:")
+
+    template_id = type_val.split(":").last
+    params[:report][:report_type] = "custom"
+    params[:report][:custom_report_template_id] = template_id
   end
 
   def preloaded_books_from_params

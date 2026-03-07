@@ -304,7 +304,19 @@
               <% end %>
             <% end %>
 
-            <% if can?(:index, :custom_fields) %>
+            <% if min_hierarchy?(50) %>
+              <%= link_to custom_report_templates_path,
+                    class: nav_link_class(request.path.start_with?(custom_report_templates_path)),
+                    title: "Report Templates" do %>
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                </svg>
+                <span class="sidebar-label truncate">Report Templates</span>
+              <% end %>
+            <% end %>
+
+          <% if can?(:index, :custom_fields) %>
               <%= link_to custom_fields_path,
                     class: nav_link_class(request.path.start_with?(custom_fields_path)),
                     title: "Custom Fields" do %>

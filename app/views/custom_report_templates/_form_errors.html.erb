@@ -1,0 +1,10 @@
+<% if template.errors.any? %>
+  <div class="bg-red-50 border border-red-200 rounded-xl px-5 py-4">
+    <p class="text-sm font-medium text-red-800 mb-2"><%= pluralize(template.errors.count, "error") %> prevented this template from being saved:</p>
+    <ul class="list-disc list-inside space-y-1">
+      <% template.errors.each do |error| %>
+        <li class="text-sm text-red-700"><%= error.full_message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

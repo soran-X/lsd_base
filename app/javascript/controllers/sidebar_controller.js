@@ -14,6 +14,7 @@ export default class extends Controller {
   static values  = { persist: { type: String, default: "lsd-sidebar-collapsed" } }
 
   connect() {
+    if (!this.hasSidebarTarget || !this.hasMainTarget) return
     if (this._isMobile()) {
       this._applyMobile(false)
     } else {
@@ -29,6 +30,7 @@ export default class extends Controller {
   }
 
   toggle() {
+    if (!this.hasSidebarTarget || !this.hasMainTarget) return
     if (this._isMobile()) {
       const isOpen = this.sidebarTarget.classList.contains("sidebar-mobile-open")
       this._applyMobile(!isOpen)
@@ -40,6 +42,7 @@ export default class extends Controller {
   }
 
   closeOverlay() {
+    if (!this.hasSidebarTarget || !this.hasMainTarget) return
     this._applyMobile(false)
   }
 
@@ -48,6 +51,7 @@ export default class extends Controller {
   }
 
   _handleResize() {
+    if (!this.hasSidebarTarget || !this.hasMainTarget) return
     if (this._isMobile()) {
       this._applyMobile(false)
     } else {

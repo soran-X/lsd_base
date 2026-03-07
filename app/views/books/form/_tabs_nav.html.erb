@@ -9,6 +9,7 @@
       ["film",            "Film"],
       ["report",          "Reader's Report"],
     ].each do |key, label| %>
+      <% next unless InstanceConfig.tab_enabled?(key) %>
       <button type="button"
               role="tab"
               data-tab-target="tab"
