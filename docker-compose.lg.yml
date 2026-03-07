@@ -6,7 +6,7 @@
 # Config: config/fields_lsd_lg.yml mounted as config/fields.yml
 
 services:
-  db_lg:
+  dblg:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -23,15 +23,15 @@ services:
       timeout: 5s
       retries: 5
 
-  web_lg:
+  weblg:
     build: .
     command: bash -c "rm -f tmp/pids/server.pid && bin/rails server -b 0.0.0.0"
     restart: unless-stopped
     depends_on:
-      db_lg:
+      dblg:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://lsd_lg:password@db_lg:5432/lsd_lg
+      DATABASE_URL: postgres://lsd_lg:password@dblg:5432/lsd_lg
       RAILS_ENV: development
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
@@ -43,13 +43,13 @@ services:
     stdin_open: true
     tty: true
 
-  css_lg:
+  csslg:
     build: .
     command: bin/rails tailwindcss:watch
     volumes:
       - .:/rails
     depends_on:
-      - web_lg
+      - weblg
 
 volumes:
   postgres_lg_data:
