@@ -1,0 +1,126 @@
+# =============================================================================
+# Field Configuration — lsd_lg instance
+#
+# Copy this file to config/fields.yml in the lsd_lg deployment.
+# Adjust labels and toggle fields as needed for this client.
+#
+# Old lsd_lg fields mapped to new schema:
+#   pages, format         → new fields added in this migration
+#   comments/notes/etc.   → migrated into book_memos / archive_notes
+#   film_info             → film_trackings.film_synopsis
+#   reader_report         → readers_reports
+#   deal_terms            → pub_info
+#   state + track_status  → status enum (draft/active/acquired/passed)
+# =============================================================================
+
+tabs:
+  info: true
+  contacts_rights: true
+  notes: true
+  coverage: true
+  film: true
+  report: true
+
+field_groups:
+  - name: Basic Info
+    fields:
+      title:
+        label: Title
+        required: true
+        searchable: true
+      subtitle:
+        label: Subtitle
+        searchable: false
+      old_title:
+        label: Old Title / Previous Title
+        searchable: true
+      status:
+        label: Status
+        searchable: false
+      publication_year:
+        label: Publication Year
+        searchable: false
+      publication_season:
+        label: Publication Season
+        searchable: false
+      pages:
+        label: Pages
+        searchable: false
+      format:
+        label: Format
+        searchable: false
+      genres:
+        label: Genre
+        searchable: false
+      sub_genres:
+        label: Sub-Genre
+        searchable: false
+      lead_title:
+        label: Lead Title
+        searchable: false
+
+  - name: Companies & Contacts
+    fields:
+      publisher:
+        label: Publisher
+        searchable: true
+      agency:
+        label: Literary Agency
+        searchable: true
+      agents:
+        label: Literary Agent(s)
+        searchable: true
+      film_agency:
+        label: Film Agency
+        searchable: true
+      film_agents:
+        label: Film Agent(s)
+        searchable: true
+      subagents:
+        label: Subagents
+        searchable: false
+
+  - name: Content
+    fields:
+      synopsis:
+        label: Synopsis
+        searchable: true
+      log_line:
+        label: Log Line
+        searchable: false
+      pub_info:
+        label: Deal Terms
+        searchable: false
+      material:
+        label: Material
+        searchable: false
+      rights_sold:
+        label: Rights Sold
+        searchable: false
+
+  - name: Scouts
+    fields:
+      primary_scout:
+        label: Scout
+        searchable: false
+      secondary_scout:
+        label: Secondary Scout
+        searchable: false
+
+  - name: Film Tracking
+    fields:
+      film_flag:
+        label: Film Flag
+        searchable: false
+      film_synopsis:
+        label: Film Info
+        searchable: false
+      film_option:
+        label: Film Option
+        searchable: false
+      readers_thoughts:
+        label: Reader's Thoughts
+        searchable: false
+      film_genre:
+        label: Film Genre
+        searchable: false
