@@ -1,0 +1,55 @@
+# Docker Compose for lsd_lg instance
+# Usage: docker compose -f docker-compose.lg.yml up -d
+#
+# Ports:  web → 3001, db → 5434
+# DB:     lsd_lg (Postgres 16)
+# Config: config/fields_lsd_lg.yml mounted as config/fields.yml
+
+services:
+  db_lg:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lsd_lg
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: lsd_lg
+    volumes:
+      - postgres_lg_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lsd_lg -d lsd_lg"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web_lg:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && bin/rails server -b 0.0.0.0"
+    restart: unless-stopped
+    depends_on:
+      db_lg:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://lsd_lg:password@db_lg:5432/lsd_lg
+      RAILS_ENV: development
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    volumes:
+      - .:/rails
+      - ./config/fields_lsd_lg.yml:/rails/config/fields.yml:ro
+    ports:
+      - "3001:3000"
+    stdin_open: true
+    tty: true
+
+  css_lg:
+    build: .
+    command: bin/rails tailwindcss:watch
+    volumes:
+      - .:/rails
+    depends_on:
+      - web_lg
+
+volumes:
+  postgres_lg_data:
